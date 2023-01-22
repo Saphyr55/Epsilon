@@ -1,4 +1,4 @@
-package org.epsilon;
+package org.epsilon.utils;
 
 public class Utils {
 
@@ -13,8 +13,21 @@ public class Utils {
         return sb.toString();
     }
 
+    public static boolean isEqual(Object a, Object b) {
+        if (a == null && b == null) return true;
+        if (a == null) return false;
+
+        return a.equals(b);
+    }
+
     public static boolean isAlphaNumeric(String s) {
         return s != null && s.chars().allMatch(Character::isLetterOrDigit);
+    }
+
+    public static boolean isTruthy(Object object) {
+        if (object == null) return false;
+        if (object instanceof Boolean) return (boolean) object;
+        return true;
     }
 
     public static boolean isAlpha(char c) {

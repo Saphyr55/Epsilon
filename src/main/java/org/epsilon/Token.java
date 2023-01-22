@@ -1,5 +1,7 @@
 package org.epsilon;
 
+import org.epsilon.utils.Utils;
+
 import static java.text.MessageFormat.format;
 
 public record Token(Kind kind, Object value, String text, int line, int col) {

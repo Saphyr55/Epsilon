@@ -21,13 +21,15 @@ public class Epsilon {
             }
             """ ;
 
-    static String calcul = """
-                "parse" + 1
+    static String code = """
+                print "Hello World!";
+                print( 1 + 1 + 9 - 4 / 5);
             """;
 
     public static void main(String[] args) {
-        Parser parser = Parser.createParser(calcul);
-        System.out.println(parser.parse());
+        Interpreter interpreter = new Interpreter();
+        Parser parser = Parser.createParser(code);
+        interpreter.interpret(parser.parse());
     }
 
 

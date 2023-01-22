@@ -1,4 +1,6 @@
-package org.epsilon;
+package org.epsilon.core;
+
+import org.epsilon.Kind;
 
 import java.lang.annotation.*;
 

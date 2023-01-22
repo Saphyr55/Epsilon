@@ -1,5 +1,12 @@
 package org.epsilon;
 
+import org.epsilon.core.ParseException;
+import org.epsilon.expression.*;
+import org.epsilon.stataments.ExpressionStatement;
+import org.epsilon.stataments.PrintStatement;
+import org.epsilon.stataments.Statement;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
@@ -19,12 +26,29 @@ public class Parser {
         tokens.forEach(System.out::println);
     }
 
-    public Expression parse() {
-        try {
-            return expression();
-        } catch (ParseException error) {
-            return null;
-        }
+    public List<Statement> parse() {
+        List<Statement> statements = new ArrayList<>();
+        while (!isAtEnd()) statements.add(createStatement());
+        return statements;
+    }
+
+    private Statement createStatement() {
+        if (match(Kind.PrintSymbol)) return printStatement();
+        return expressionStatement();
+    }
+
+    private Statement expressionStatement() {
+        return new ExpressionStatement(expressionConsumeStatement());
+    }
+
+    private Statement printStatement() {
+        return new PrintStatement(expressionConsumeStatement());
+    }
+
+    private Expression expressionConsumeStatement() {
+        Expression value = expression();
+        consume(Kind.Semicolon, "Expect ';' after value.");
+        return value;
     }
 
     private Expression expression() {
@@ -37,7 +61,7 @@ public class Parser {
         while (match(Kind.NotEqual, Kind.Equal)) {
             Token operator = previous();
             Expression right = comparison();
-            expr = new Expression.Binary(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right);
         }
 
         return expr;
@@ -48,7 +72,7 @@ public class Parser {
         while (match(Kind.Greater, Kind.GreaterEqual, Kind.Less, Kind.LessEqual)) {
             Token operator = previous();
             Expression right = term();
-            expr = new Expression.Binary(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right);
         }
 
         return expr;
@@ -60,7 +84,7 @@ public class Parser {
         while (match(Kind.Minus, Kind.Plus)) {
             Token operator = previous();
             Expression right = factor();
-            expr = new Expression.Binary(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right);
         }
 
         return expr;
@@ -72,7 +96,7 @@ public class Parser {
         while (match(Kind.Slash, Kind.Star)) {
             Token operator = previous();
             Expression right = unary();
-            expr = new Expression.Binary(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right);
         }
 
         return expr;
@@ -82,25 +106,25 @@ public class Parser {
         if (match(Kind.Not, Kind.Minus)) {
             Token operator = previous();
             Expression right = unary();
-            return new Expression.Unary(operator, right);
+            return new UnaryExpression(operator, right);
         }
 
         return primary();
     }
 
     private Expression primary() {
-        if (match(Kind.False)) return new Expression.Literal(false);
-        if (match(Kind.True)) return new Expression.Literal(true);
-        if (match(Kind.Nil)) return new Expression.Literal(null);
+        if (match(Kind.False)) return new LiteralExpression(false);
+        if (match(Kind.True)) return new LiteralExpression(true);
+        if (match(Kind.Nil)) return new LiteralExpression(null);
 
         if (match(Kind.Number, Kind.String)) {
-            return new Expression.Literal(previous().value());
+            return new LiteralExpression(previous().value());
         }
 
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");
-            return new Expression.Grouping(expr);
+            return new GroupingExpression(expr);
         }
         throw error(peek(), "Expect expression.");
     }

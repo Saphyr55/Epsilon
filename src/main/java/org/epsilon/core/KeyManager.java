@@ -1,4 +1,7 @@
-package org.epsilon;
+package org.epsilon.core;
+
+import org.epsilon.Kind;
+import org.epsilon.Syntax;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

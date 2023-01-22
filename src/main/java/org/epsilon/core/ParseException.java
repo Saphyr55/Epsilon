@@ -1,4 +1,4 @@
-package org.epsilon;
+package org.epsilon.core;
 
 public class ParseException extends RuntimeException {
 

@@ -1,10 +1,15 @@
 package org.epsilon;
 
+import org.epsilon.core.Key;
+import org.epsilon.core.Matching;
+
 public class Syntax {
 
     public static class Word {
         @Key(kind = Kind.LetSymbol)
         public static final String Let = "let";
+        @Key(kind = Kind.PrintSymbol)
+        public static final String Print = "print";
         @Key(kind = Kind.FuncSymbol)
         public static final String Func = "func";
         @Key(kind = Kind.ReturnSymbol)

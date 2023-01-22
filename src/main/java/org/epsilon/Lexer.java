@@ -1,5 +1,8 @@
 package org.epsilon;
 
+import org.epsilon.core.KeyManager;
+import org.epsilon.utils.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -146,7 +149,7 @@ public class Lexer {
 
     private boolean match(String expected) {
         if (isAtEnd()) return false;
-        if (String.valueOf(text.charAt(position)).equals(expected)) return false;
+        if (!String.valueOf(text.charAt(position)).equals(expected)) return false;
         next();
         return true;
     }
