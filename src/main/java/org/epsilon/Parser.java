@@ -3,6 +3,7 @@ package org.epsilon;
 import org.epsilon.core.ParseException;
 import org.epsilon.expression.*;
 import org.epsilon.stataments.ExpressionStatement;
+import org.epsilon.stataments.LetStatement;
 import org.epsilon.stataments.PrintStatement;
 import org.epsilon.stataments.Statement;
 
@@ -28,9 +29,32 @@ public class Parser {
 
     public List<Statement> parse() {
         List<Statement> statements = new ArrayList<>();
-        while (!isAtEnd()) statements.add(createStatement());
+        while (!isAtEnd()) statements.add(createDeclaration());
         return statements;
     }
+
+    private Statement createDeclaration() {
+        try {
+            if (match(Kind.LetSymbol)) return createLetDeclaration();
+            return createStatement();
+        } catch (ParseException e) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Statement createLetDeclaration() {
+
+        Token name = consume(Kind.Identifier, "Expect variable name.");
+        Expression initializer = null;
+
+        if (match(Kind.Equal))
+            initializer = expression();
+
+        consume(Kind.Semicolon, "Expect ';' after variable declaration.");
+        return new LetStatement(name, initializer);
+    }
+
 
     private Statement createStatement() {
         if (match(Kind.PrintSymbol)) return printStatement();
@@ -116,10 +140,8 @@ public class Parser {
         if (match(Kind.False)) return new LiteralExpression(false);
         if (match(Kind.True)) return new LiteralExpression(true);
         if (match(Kind.Nil)) return new LiteralExpression(null);
-
-        if (match(Kind.Number, Kind.String)) {
-            return new LiteralExpression(previous().value());
-        }
+        if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
+        if (match(Kind.Identifier)) return new LetExpression(previous());
 
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();

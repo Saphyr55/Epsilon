@@ -11,8 +11,8 @@ public class PrintStatement implements Statement {
     }
 
     @Override
-    public <R> void accept(StatementVisitor<R> visitor) {
-        visitor.visitPrintStatement(this);
+    public <R> R accept(StatementVisitor<R> visitor) {
+        return visitor.visitPrintStatement(this);
     }
 
     public Expression getExpression() {

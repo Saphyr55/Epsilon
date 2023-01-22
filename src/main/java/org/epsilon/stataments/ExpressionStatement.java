@@ -11,8 +11,8 @@ public class ExpressionStatement implements Statement {
     }
 
     @Override
-    public <R> void accept(StatementVisitor<R> visitor) {
-        visitor.visitExpressionStatement(this);
+    public <R> R accept(StatementVisitor<R> visitor) {
+        return visitor.visitExpressionStatement(this);
     }
 
     public Expression getExpression() {

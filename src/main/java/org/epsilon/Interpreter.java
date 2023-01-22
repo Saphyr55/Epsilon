@@ -2,10 +2,7 @@ package org.epsilon;
 
 import org.epsilon.core.InterpretRuntimeException;
 import org.epsilon.expression.*;
-import org.epsilon.stataments.ExpressionStatement;
-import org.epsilon.stataments.PrintStatement;
-import org.epsilon.stataments.Statement;
-import org.epsilon.stataments.StatementVisitor;
+import org.epsilon.stataments.*;
 
 import java.util.List;
 
@@ -13,6 +10,9 @@ import static org.epsilon.utils.Utils.isEqual;
 import static org.epsilon.utils.Utils.isTruthy;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void> {
+
+    private Environment environment = new Environment();
+
 
     public void interpret(List<Statement> statements) {
         try {
@@ -37,7 +37,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Void visitPrintStatement(PrintStatement statement) {
         Object value = evaluate(statement.getExpression());
-        System.out.println(stringify(value));
+        System.out.print(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitLetStatement(LetStatement statement) {
+        Object value = null;
+        if (statement.getInitializer() != null)
+            value = evaluate(statement.getInitializer());
+
+        environment.define(statement.getName().text(), value);
         return null;
     }
 
@@ -113,6 +123,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             case Not -> !isTruthy(right);
             default -> null;
         };
+    }
+
+    @Override
+    public Object visitLetExpression(LetExpression expression) {
+        return environment.get(expression.getName());
     }
 
     private Object evaluate(Expression expression) {
