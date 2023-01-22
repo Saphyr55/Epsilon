@@ -22,7 +22,7 @@ public class Epsilon {
             """ ;
 
     static String code = """
-                print "Hello World!";
+                print "Hello World!"
                 print( 1 + 1 + 9 - 4 / 5);
             """;
 
