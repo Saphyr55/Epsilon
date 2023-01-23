@@ -1,0 +1,9 @@
+package epsilonc.stataments;
+
+public interface StatementVisitor<R> {
+
+
+    R visitExpressionStatement(ExpressionStatement statement);
+    R visitPrintStatement(PrintStatement statement);
+    R visitLetStatement(LetStatement letStatement);
+}

@@ -4,10 +4,10 @@ plugins {
 }
 
 application {
-    mainClass = 'org.epsilon.Epsilon'
+    mainClass = 'epsilonc.Epsilon'
 }
 
-group 'org.epsilon'
+group 'epsilon'
 version '1.0-SNAPSHOT'
 
 repositories {
