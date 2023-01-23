@@ -10,7 +10,7 @@ public final class LiteralExpression implements Expression {
 
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visitLiteralExpr(this);
+        return visitor.visitLiteralExpression(this);
     }
 
     public Object getValue() {

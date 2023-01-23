@@ -2,7 +2,7 @@ package epsilonc.statement;
 
 import epsilonc.Environment;
 import epsilonc.Token;
-import epsilonc.core.FuncCallable;
+import epsilonc.type.Func;
 
 import java.util.List;
 
@@ -18,8 +18,8 @@ public class FunctionStatement implements Statement {
         this.body = body;
     }
 
-    public FuncCallable createCallable(Environment environment) {
-        return new FuncCallable(environment, this);
+    public Func createCallable(Environment environment) {
+        return new Func(environment, this);
     }
 
     @Override

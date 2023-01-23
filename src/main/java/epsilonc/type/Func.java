@@ -1,18 +1,18 @@
-package epsilonc.core;
+package epsilonc.type;
 
-import epsilonc.FunctionCallable;
 import epsilonc.Environment;
 import epsilonc.Interpreter;
+import epsilonc.core.ReturnRuntimeException;
 import epsilonc.statement.FunctionStatement;
 
 import java.util.List;
 
-public class FuncCallable implements FunctionCallable {
+public class Func implements FunctionCallable {
 
     private final FunctionStatement declaration;
     private final Environment closure;
 
-    public FuncCallable(Environment closure, FunctionStatement declaration) {
+    public Func(Environment closure, FunctionStatement declaration) {
         this.closure = closure;
         this.declaration = declaration;
     }

@@ -49,6 +49,19 @@ public class Environment {
         values.put(name, new Let(value, false));
     }
 
+    public void assignAt(Integer distance, Token name, Object value) {
+        if (ancestor(distance).values.containsKey(name.text())) {
+            Let let = ancestor(distance).values.get(name.text());
+            if (let.isMutable) {
+                let.value = value;
+                return;
+            }
+            throw new InterpretRuntimeException(name,
+                    "Cannot change the value of " + name.text() +
+                            ", please write 'let mut " + name.text() + ";'");
+        }
+    }
+
     public void assign(Token name, Object value) {
 
         if (values.containsKey(name.text())) {
@@ -72,5 +85,17 @@ public class Environment {
 
         throw new AssignException(name, "Undefined variable '" + name.text() + "'.");
     };
+
+    public Object getAt(Integer distance, String text) {
+        return ancestor(distance).values.get(text).value;
+    }
+
+    Environment ancestor(int distance) {
+        Environment environment = this;
+        for (int i = 0; i < distance; i++) {
+            environment = environment.enclosing;
+        }
+        return environment;
+    }
 
 }

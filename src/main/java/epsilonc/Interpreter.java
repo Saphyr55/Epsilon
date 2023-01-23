@@ -5,18 +5,25 @@ import epsilonc.core.NativeFunction;
 import epsilonc.core.ReturnRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
+import epsilonc.type.FunctionCallable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static epsilonc.utils.Utils.isEqual;
 import static epsilonc.utils.Utils.isTruthy;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void> {
 
-    private final Environment globals = new Environment();
-    private Environment environment = globals;
+    private final Map<Expression, Integer> locals;
+    private final Environment globals;
+    private Environment environment;
 
     public Interpreter() {
+        globals = new Environment();
+        locals = new HashMap<>();
+        environment = globals;
         NativeFunction.defineAll(this);
     }
 
@@ -100,7 +107,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Object visitBinaryExpr(BinaryExpression expression) {
+    public Object visitBinaryExpression(BinaryExpression expression) {
 
         Object left = evaluate(expression.getLeft());
         Object right = evaluate(expression.getRight());
@@ -161,17 +168,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Object visitGroupingExpr(GroupingExpression expression) {
+    public Object visitGroupingExpression(GroupingExpression expression) {
         return evaluate(expression.getExpression());
     }
 
     @Override
-    public Object visitLiteralExpr(LiteralExpression expression) {
+    public Object visitLiteralExpression(LiteralExpression expression) {
         return expression.getValue();
     }
 
     @Override
-    public Object visitUnaryExpr(UnaryExpression expression) {
+    public Object visitUnaryExpression(UnaryExpression expression) {
         Object right = evaluate(expression.getRight());
         return switch (expression.getOp().kind()) {
             case Minus -> {
@@ -185,14 +192,16 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitLetExpression(LetExpression expression) {
-        Token name = expression.getName();
-        return environment.get(name);
+        return lookUpVariable(expression.getName(), expression);
     }
 
     @Override
     public Object visitAssignExpression(AssignExpression expression) {
         Object value = evaluate(expression.getValue());
-        environment.assign(expression.getName(), value);
+        Integer distance = locals.get(expression);
+        if (distance != null) environment.assignAt(distance, expression.getName(), value);
+        else globals.assign(expression.getName(), value);
+
         return value;
     }
 
@@ -265,6 +274,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
 
         return object.toString();
+    }
+
+    void resolve(Expression expr, int depth) {
+        locals.put(expr, depth);
+    }
+
+    private Object lookUpVariable(Token name, Expression expression) {
+        Integer distance = locals.get(expression);
+        if (distance != null) {
+            return environment.getAt(distance, name.text());
+        } else {
+            return globals.get(name);
+        }
     }
 
     public Environment getGlobals() {

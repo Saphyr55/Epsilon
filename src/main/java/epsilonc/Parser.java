@@ -54,7 +54,7 @@ public class Parser {
         if (!check(Kind.CloseParenthesis)) {
             do {
                 if (parameters.size() >= 255)
-                    throw error(peek(), "Can't have more than 255 parameters.");
+                    throw report(peek(), "Can't have more than 255 parameters.");
 
                 parameters.add(consume(Kind.Identifier, "Expect parameter name."));
             } while (match(Kind.CommaSymbol));
@@ -181,7 +181,7 @@ public class Parser {
             if (expression instanceof LetExpression le)
                 return new AssignExpression(le.getName(), value);
 
-            throw error(equals, "Invalid assignment target.");
+            throw report(equals, "Invalid assignment target.");
         }
 
         return expression;
@@ -282,7 +282,7 @@ public class Parser {
         if (!check(Kind.CloseParenthesis)) {
             do {
                 if (arguments.size() >= 255) {
-                    throw error(peek(), "Can't have more than 255 arguments.");
+                    throw report(peek(), "Can't have more than 255 arguments.");
                 }
                 arguments.add(expression());
             } while (match(Kind.CommaSymbol));
@@ -307,7 +307,7 @@ public class Parser {
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");
             return new GroupingExpression(expr);
         }
-        throw error(peek(), "Expect expression.");
+        throw report(peek(), "Expect expression.");
     }
 
     public void synchronize() {
@@ -330,16 +330,18 @@ public class Parser {
 
     public Token consume(Kind type, String message) {
         if (check(type)) return advance();
-        throw error(peek(), message);
+        throw report(peek(), message);
     }
 
-    public ParseException error(Token token, String message) {
-        if (token.kind() == Kind.EndToken)
-            System.err.println("Error" + ": " + message + " at end");
-        else
-            System.err.println("Error" + ": '" + token.text() + "' | " + message + " at "+ "[" + token.line() + ","+ token.col() + "]");
-
+    public static ParseException report(Token tk, String msg) {
+        System.err.println(diagnostic(tk, msg));
         return new ParseException();
+    }
+
+    public static String diagnostic(Token t, String msg) {
+        if (t.kind() == Kind.EndToken)
+            return "Error" + ": " + msg + " at end";
+        return "Error" + ": '" + t.text() + "' | " + msg + " at "+ "[" + t.line() + ","+ t.col() + "]";
     }
 
     public boolean match(Kind... kinds) {

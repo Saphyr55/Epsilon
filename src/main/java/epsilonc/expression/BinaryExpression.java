@@ -27,7 +27,7 @@ public final class BinaryExpression implements Expression {
 
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visitBinaryExpr(this);
+        return visitor.visitBinaryExpression(this);
     }
 
     @Override

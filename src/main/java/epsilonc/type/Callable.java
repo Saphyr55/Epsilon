@@ -1,4 +1,4 @@
-package epsilonc.core;
+package epsilonc.type;
 
 import epsilonc.Interpreter;
 

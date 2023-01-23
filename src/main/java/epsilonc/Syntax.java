@@ -34,6 +34,8 @@ public final class Syntax {
         public static final String While = "while";
         @Bind(kind = Kind.BreakSymbol)
         public static final String Break = "break";
+        @Bind(kind = Kind.NamespaceSymbol)
+        public static final String Namespace = "namespace";
     }
 
     public final static class Symbol {

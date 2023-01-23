@@ -22,7 +22,7 @@ public final class UnaryExpression implements Expression {
 
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visitUnaryExpr(this);
+        return visitor.visitUnaryExpression(this);
     }
 
     @Override

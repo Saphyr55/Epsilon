@@ -55,6 +55,6 @@ public enum Kind {
     LogicalAnd,
     BinaryOr,
     LogicalOr,
-    BreakSymbol,
+    BreakSymbol, NamespaceSymbol,
 
 }

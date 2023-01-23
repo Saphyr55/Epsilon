@@ -22,7 +22,7 @@ public final class GroupingExpression implements Expression {
 
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visitGroupingExpr(this);
+        return visitor.visitGroupingExpression(this);
     }
 
 }

@@ -2,10 +2,10 @@ package epsilonc.expression;
 
 public interface ExpressionVisitor<R>  {
 
-   R visitBinaryExpr(BinaryExpression expression);
-   R visitGroupingExpr(GroupingExpression expression);
-   R visitLiteralExpr(LiteralExpression expression);
-   R visitUnaryExpr(UnaryExpression expression);
+   R visitBinaryExpression(BinaryExpression expression);
+   R visitGroupingExpression(GroupingExpression expression);
+   R visitLiteralExpression(LiteralExpression expression);
+   R visitUnaryExpression(UnaryExpression expression);
    R visitLetExpression(LetExpression expression);
    R visitAssignExpression(AssignExpression expression);
     R visitLogicalExpression(LogicalExpression expression);
