@@ -36,13 +36,14 @@ public class Environment {
     }
 
     public void assign(Token name, Object value) {
+
         if (values.containsKey(name.text())) {
             define(name.text(), value);
             return;
         }
 
         if (enclosing != null) {
-            define(name.text(), value);
+            enclosing.values.put(name.text(), value);
             return;
         }
 

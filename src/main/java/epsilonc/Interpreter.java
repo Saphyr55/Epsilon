@@ -22,7 +22,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
     }
 
-
     private void execute(Statement statement) {
         statement.accept(this);
     }
@@ -64,6 +63,31 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Void visitBlockStatement(BlockStatement statement) {
         executeBlock(statement.getStatements(), new Environment(environment));
+        return null;
+    }
+
+    @Override
+    public Void visitIfStatement(IfStatement statement) {
+        if (isTruthy(evaluate(statement.getCondition()))) {
+            execute(statement.getThenBranch());
+        } else if (statement.getElseBranch() != null) {
+            execute(statement.getElseBranch());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(WhileStatement statement) {
+        while (isTruthy(evaluate(statement.getCondition())))
+        {
+
+            execute(statement.getBody());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStatement(BreakStatement breakStatement) {
         return null;
     }
 
@@ -153,14 +177,28 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitLetExpression(LetExpression expression) {
-        return environment.get(expression.getName());
+        Token name = expression.getName();
+        return environment.get(name);
     }
 
     @Override
-    public Object visitAssignExpression(AssignExpression assignExpression) {
-        Object value = evaluate(assignExpression);
-        environment.assign(assignExpression.getName(), value);
+    public Object visitAssignExpression(AssignExpression expression) {
+        Object value = evaluate(expression.getValue());
+        environment.assign(expression.getName(), value);
         return value;
+    }
+
+    @Override
+    public Object visitLogicalExpression(LogicalExpression expression) {
+        Object left = evaluate(expression.getLeft());
+
+        if (expression.getOp().kind() == Kind.LogicalOr && isTruthy(left)) {
+            return left;
+        } else if (!isTruthy(left)) {
+            return left;
+        }
+
+        return evaluate(expression.getRight());
     }
 
     private Object evaluate(Expression expression) {

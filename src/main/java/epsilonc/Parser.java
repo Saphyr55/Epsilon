@@ -5,6 +5,7 @@ import epsilonc.expression.*;
 import epsilonc.statement.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Parser {
@@ -32,10 +33,9 @@ public class Parser {
 
     private Statement createDeclaration() {
         try {
-            if (match(Kind.LetSymbol))
-                return createLetDeclaration();
+            if (match(Kind.LetSymbol)) return createLetDeclaration();
 
-            return createStatement();
+            return statement();
         } catch (ParseException e) {
             synchronize();
             return null;
@@ -53,11 +53,61 @@ public class Parser {
         return new LetStatement(name, initializer);
     }
 
-
-    private Statement createStatement() {
-        if (match(Kind.PrintSymbol)) return printStatement();
+    private Statement statement() {
+        if (match(Kind.ForSymbol)) return createForStatement();
+        if (match(Kind.BreakSymbol)) return new BreakStatement();
+        if (match(Kind.WhileSymbol)) return createWhileStatement();
+        if (match(Kind.IfSymbol)) return createIfStatement();
+        if (match(Kind.PrintSymbol)) return createPrintStatement();
         if (match(Kind.OpenBracket)) return new BlockStatement(createBlock());
-        return expressionStatement();
+        return createExpressionStatement();
+    }
+
+    private Statement createForStatement() {
+
+        consume(Kind.OpenParenthesis, "Expected '(' after 'for' loop");
+
+        Statement init = null;
+        if (match(Kind.Semicolon)) init = null;
+        else if (match(Kind.LetSymbol)) init = createLetDeclaration();
+        else init = createExpressionStatement();
+
+        Expression condition = check(Kind.Semicolon) ? null : expression();
+        consume(Kind.Semicolon, "Expected ';' after loop condition");
+
+        Expression increment = check(Kind.CloseParenthesis) ? null : expression();
+        consume(Kind.CloseParenthesis, "Expected ')' to close for loop");
+
+        Statement body = statement();
+
+        if (increment != null)
+            body = new BlockStatement(Arrays.asList(body, new ExpressionStatement(increment)));
+
+        if (condition == null)
+            condition = new LiteralExpression(true);
+
+        body = new WhileStatement(condition, body);
+
+        if (init != null)
+            body = new BlockStatement(Arrays.asList(init, body));
+
+        return body;
+    }
+
+    private Statement createWhileStatement() {
+        consume(Kind.OpenParenthesis, "Expect '(' after 'while'.");
+        Expression condition = expression();
+        consume(Kind.CloseParenthesis, "Expect ')' after condition.");
+        return new WhileStatement(condition, statement());
+    }
+
+    private Statement createIfStatement() {
+        consume(Kind.OpenParenthesis, "Expected '(' after if.");
+        Expression condition = expression();
+        consume(Kind.OpenParenthesis, "Expected ')' after if condition.");
+        Statement thenBranch = statement();
+        Statement elseBranch = match(Kind.ElseSymbol) ? statement() : null;
+        return new IfStatement(condition, thenBranch, elseBranch);
     }
 
     private List<Statement> createBlock() {
@@ -69,11 +119,11 @@ public class Parser {
         return statements;
     }
 
-    private Statement expressionStatement() {
+    private Statement createExpressionStatement() {
         return new ExpressionStatement(expressionConsumeStatement());
     }
 
-    private Statement printStatement() {
+    private Statement createPrintStatement() {
         return new PrintStatement(expressionConsumeStatement());
     }
 
@@ -82,18 +132,17 @@ public class Parser {
         consume(Kind.Semicolon, "Expect ';' after value.");
         return value;
     }
-
     private Expression expression() {
         return assignment();
     }
 
     private Expression assignment() {
 
-        Expression expression = equality();
+        Expression expression = or();
 
         if (match(Kind.Assign)) {
             Token equals = previous();
-            Expression value = assignment();
+            Expression value = or();
 
             if (expression instanceof LetExpression le) {
                 Token name = le.getName();
@@ -103,6 +152,28 @@ public class Parser {
             error(equals, "Invalid assignment target.");
         }
 
+        return expression;
+    }
+
+    private Expression or() {
+        Expression expression = and();
+
+        while (match(Kind.LogicalOr)) {
+            Token operator = previous();
+            Expression right = and();
+            expression = new LogicalExpression(expression, operator, right);
+        }
+        return expression;
+    }
+
+    private Expression and() {
+        Expression expression = equality();
+
+        while (match(Kind.LogicalAnd)) {
+            Token operator = previous();
+            Expression right = equality();
+            expression = new LogicalExpression(expression, operator, right);
+        }
         return expression;
     }
 
@@ -161,7 +232,6 @@ public class Parser {
             Expression right = unary();
             return new UnaryExpression(operator, right);
         }
-
         return primary();
     }
 
@@ -181,7 +251,7 @@ public class Parser {
         throw error(peek(), "Expect expression.");
     }
 
-    private void synchronize() {
+    public void synchronize() {
         advance();
 
         while (!isAtEnd()) {
@@ -199,12 +269,12 @@ public class Parser {
         }
     }
 
-    private Token consume(Kind type, String message) {
+    public Token consume(Kind type, String message) {
         if (check(type)) return advance();
         throw error(peek(), message);
     }
 
-    private ParseException error(Token token, String message) {
+    public ParseException error(Token token, String message) {
         if (token.kind() == Kind.EndToken)
             System.err.println("Error" + ": " + message + " at end");
         else
@@ -213,7 +283,7 @@ public class Parser {
         return new ParseException();
     }
 
-    private boolean match(Kind... kinds) {
+    public boolean match(Kind... kinds) {
         for (Kind kind : kinds)
             if (check(kind)) {
                 advance();
@@ -222,25 +292,25 @@ public class Parser {
         return false;
     }
 
-    private boolean check(Kind kind) {
+    public boolean check(Kind kind) {
         if (isAtEnd()) return false;
         return peek().kind() == kind;
     }
 
-    private Token advance() {
+    public Token advance() {
         if (!isAtEnd()) current++;
         return previous();
     }
 
-    private boolean isAtEnd() {
+    public boolean isAtEnd() {
         return peek().kind() == Kind.EndToken;
     }
 
-    private Token peek() {
+    public Token peek() {
         return tokens.get(current);
     }
 
-    private Token previous() {
+    public Token previous() {
         return tokens.get(current - 1);
     }
 

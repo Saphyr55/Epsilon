@@ -2,7 +2,7 @@ package epsilonc.expression;
 
 import epsilonc.Token;
 
-public class AssignExpression implements Expression {
+public final class AssignExpression implements Expression {
 
 
     private Token name;

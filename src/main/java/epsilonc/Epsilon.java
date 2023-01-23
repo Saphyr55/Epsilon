@@ -17,11 +17,16 @@ public class Epsilon {
     static String code = """
                 let name = "Andy";
                 {
-                    let bonjour = "Bonjour";
-                    print bonjour + " " + name + "\n";
+                    let msg = "Bonjour " + name;
+                    print msg + "\n";
                 }
                 
-                print( 1 + 1 + 9 - 4 / 5);
+                for (let i = 0; i < 10; i = i + 1) {
+                    if (i != 0) {
+                        print name + "\n";
+                    }
+                }
+                              
             """;
 
     public static void main(String[] args) {

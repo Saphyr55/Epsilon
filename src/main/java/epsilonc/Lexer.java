@@ -45,6 +45,8 @@ public class Lexer {
             case Symbol.CloseParenthesis -> addToken(Kind.CloseParenthesis);
             case Symbol.Bang -> addToken(match(Symbol.Equal) ? Kind.NotEqual : Kind.Not);
             case Symbol.Equal -> addToken(match(Symbol.Equal) ? Kind.Equal : Kind.Assign);
+            case Symbol.Ampersand -> addToken(match(Symbol.Ampersand) ? Kind.LogicalAnd : Kind.BinaryAnd);
+            case Symbol.Pipeline -> addToken(match(Symbol.Pipeline) ? Kind.LogicalOr : Kind.BinaryOr);
             case Symbol.OpenBrackets -> addToken(Kind.OpenBracket);
             case Symbol.CloseBrackets -> addToken(Kind.CloseBracket);
             case Symbol.Dot -> addToken(Kind.Period);

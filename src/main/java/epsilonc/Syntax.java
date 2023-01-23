@@ -3,11 +3,17 @@ package epsilonc;
 import epsilonc.core.Key;
 import epsilonc.core.Matching;
 
-public class Syntax {
+public final class Syntax {
 
-    public static class Word {
+    public final static class Word {
+        @Key(kind = Kind.True)
+        public static final String True = "true";
+        @Key(kind = Kind.False)
+        public static final String False = "false";
         @Key(kind = Kind.LetSymbol)
         public static final String Let = "let";
+        @Key(kind = Kind.MutSymbol)
+        public static final String Mut = "mut";
         @Key(kind = Kind.PrintSymbol)
         public static final String Print = "print";
         @Key(kind = Kind.FuncSymbol)
@@ -30,10 +36,14 @@ public class Syntax {
         public static final String While = "while";
         @Key(kind = Kind.MethodSymbol)
         public static final String Method = "method";
+        @Key(kind = Kind.BreakSymbol)
+        public static final String Break = "break";
     }
 
-    public static class Symbol {
+    public final static class Symbol {
         public static final String Space = " ";
+        public static final String Ampersand = "&";
+        public static final String Pipeline = "|";
         public static final String BackslashN = "\n";
         public static final String BackslashT = "\t";
         public static final String BackslashR = "\r";

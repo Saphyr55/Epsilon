@@ -50,6 +50,6 @@ public enum Kind {
     ClassSymbol,
     WhileSymbol,
     Less,
-    Greater, Identifier, MethodSymbol, Unmatch, True, False, PrintSymbol,
+    Greater, Identifier, MethodSymbol, Unmatch, True, False, PrintSymbol, MutSymbol, BinaryAnd, LogicalAnd, BinaryOr, LogicalOr, BreakSymbol,
 
 }

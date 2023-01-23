@@ -2,12 +2,18 @@ package epsilonc.expression;
 
 import epsilonc.Token;
 
-public class LetExpression implements Expression {
+public final class LetExpression implements Expression {
 
     private Token name;
+    private boolean isMutable;
+
+    public LetExpression(Token name, boolean isMutable) {
+        this.name = name;
+        this.isMutable = isMutable;
+    }
 
     public LetExpression(Token name) {
-        this.name = name;
+        this(name, false);
     }
 
     @Override
