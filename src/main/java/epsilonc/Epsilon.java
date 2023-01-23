@@ -1,38 +1,15 @@
 package epsilonc;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class Epsilon {
 
-    static String text = """
-            class Point {
-                    
-            }
-            
-            func main() {
-                
-                print "Hello World!";
-            
-            }
-            """ ;
-
-    static String code = """
-                let name = "Andy";
-                {
-                    let msg = "Bonjour " + name;
-                    print msg + "\n";
-                }
-                
-                for (let i = 0; i < 10; i = i + 1) {
-                    if (i != 0) {
-                        print name + "\n";
-                    }
-                }
-                              
-            """;
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Interpreter interpreter = new Interpreter();
-        Parser parser = Parser.createParser(code);
-        parser.showTokens();
+        Parser parser = Parser.createParser(Files.readString(Path.of("main.epsilon"), StandardCharsets.UTF_8));
         interpreter.interpret(parser.parse());
     }
 

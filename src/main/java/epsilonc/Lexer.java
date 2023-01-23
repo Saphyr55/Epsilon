@@ -1,6 +1,6 @@
 package epsilonc;
 
-import epsilonc.core.KeyManager;
+import epsilonc.core.BindingManager;
 import epsilonc.utils.Utils;
 
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public class Lexer {
 
     private void addIdentifierToken() {
         while (Utils.isAlphaNumeric(peek())) next();
-        Kind type = KeyManager.getKeywords().get(text.substring(start, position));
+        Kind type = BindingManager.getKeywords().get(text.substring(start, position));
         addToken(type == null ? Kind.Identifier : type);
     }
 

@@ -2,14 +2,25 @@ package epsilonc;
 
 import epsilonc.core.AssignException;
 import epsilonc.core.DeclarationException;
+import epsilonc.core.InterpretRuntimeException;
 
-import javax.management.openmbean.OpenMBeanAttributeInfo;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
 
-    private final Map<String, Object> values;
+    private static class Let {
+        Object value;
+        boolean isMutable;
+
+        Let(Object value, boolean isMutable) {
+            this.value = value;
+            this.isMutable = isMutable;
+        }
+
+    }
+
+    private final Map<String, Let> values;
     private Environment enclosing;
 
     public Environment(Environment enclosing) {
@@ -23,7 +34,7 @@ public class Environment {
 
     public Object get(Token name) {
         if (values.containsKey(name.text())) {
-            return values.get(name.text());
+            return values.get(name.text()).value;
         }
 
         if (enclosing != null) return enclosing.get(name);
@@ -31,20 +42,34 @@ public class Environment {
         throw new DeclarationException(name, "Undefined variable '" + name.text() + "'.");
     }
 
-    public void define(String name, Object value) {
-        values.put(name, value);
+    public void define(String name, Object value, boolean isMutable) {
+        values.put(name, new Let(value, isMutable));
     }
+
+    public void define(String name, Object value) {
+        values.put(name, new Let(value, false));
+    }
+
 
     public void assign(Token name, Object value) {
 
         if (values.containsKey(name.text())) {
-            define(name.text(), value);
-            return;
+            Let let = values.get(name.text());
+            if (let.isMutable) {
+                let.value = value;
+                return;
+            }
+            throw new InterpretRuntimeException(name,
+                    "Cannot change the value of " + name.text() +
+                            ", please write 'let mut " + name.text() + ";'");
         }
 
         if (enclosing != null) {
-            enclosing.values.put(name.text(), value);
-            return;
+            Let let = enclosing.values.get(name.text());
+            if (let.isMutable) {
+                let.value = value;
+                return;
+            }
         }
 
         throw new AssignException(name, "Undefined variable '" + name.text() + "'.");

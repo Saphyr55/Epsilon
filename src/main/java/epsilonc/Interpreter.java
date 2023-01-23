@@ -1,6 +1,8 @@
 package epsilonc;
 
 import epsilonc.core.InterpretRuntimeException;
+import epsilonc.core.NativeFunction;
+import epsilonc.core.ReturnRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
 
@@ -11,7 +13,12 @@ import static epsilonc.utils.Utils.isTruthy;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void> {
 
-    private Environment environment = new Environment();
+    private final Environment globals = new Environment();
+    private Environment environment = globals;
+
+    public Interpreter() {
+        NativeFunction.defineAll(this);
+    }
 
     public void interpret(List<Statement> statements) {
         try {
@@ -22,11 +29,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
     }
 
-    private void execute(Statement statement) {
-        statement.accept(this);
-    }
-
-    private void executeBlock(List<Statement> statements, Environment environment) {
+    public void executeBlock(List<Statement> statements, Environment environment) {
         Environment previous = this.environment;
         try {
             this.environment = environment;
@@ -44,10 +47,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Void visitPrintStatement(PrintStatement statement) {
-        Object value = evaluate(statement.getExpression());
-        System.out.print(stringify(value));
-        return null;
+    public Void visitReturnStatement(ReturnStatement statement) {
+        Object value = statement.getValue() == null ? null : evaluate(statement.getValue());
+        throw new ReturnRuntimeException(value);
     }
 
     @Override
@@ -56,7 +58,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (statement.getInitializer() != null)
             value = evaluate(statement.getInitializer());
 
-        environment.define(statement.getName().text(), value);
+        environment.define(statement.getName().text(), value, statement.isMutable());
         return null;
     }
 
@@ -88,6 +90,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Void visitBreakStatement(BreakStatement breakStatement) {
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionStatement(FunctionStatement statement) {
+        environment.define(statement.getName().text(), statement.createCallable(), true);
         return null;
     }
 
@@ -183,6 +191,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitAssignExpression(AssignExpression expression) {
+
         Object value = evaluate(expression.getValue());
         environment.assign(expression.getName(), value);
         return value;
@@ -201,21 +210,45 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return evaluate(expression.getRight());
     }
 
-    private Object evaluate(Expression expression) {
+    @Override
+    public Object visitCallExpression(CallExpression expression) {
+        Object callee = evaluate(expression.getCallee());
+
+        List<Object> arguments = expression.getArguments().stream().toList()
+                        .stream().map(this::evaluate).toList();
+
+        if (callee instanceof FunctionCallable callable) {
+            if (arguments.size() != callable.arity()) {
+                throw new InterpretRuntimeException(expression.getParen(), "Expected " +
+                        callable.arity() + " arguments but got " +
+                        arguments.size() + ".");
+            }
+            return callable.call(this, arguments);
+        }
+
+        throw new InterpretRuntimeException(expression.getParen(),
+                "Can only call functions and classes.");
+    }
+
+    public Object evaluate(Expression expression) {
         return expression.accept(this);
     }
 
-    private void checkNumberOperand(Token operator, Object operand) {
+    public void execute(Statement statement) {
+        statement.accept(this);
+    }
+
+    public void checkNumberOperand(Token operator, Object operand) {
         if (operand instanceof Double) return;
         throw new InterpretRuntimeException(operator, "Operand must be a number.");
     }
 
-    private void checkNumberOperands(Token operator, Object left, Object right) {
+    public void checkNumberOperands(Token operator, Object left, Object right) {
         if (left instanceof Double && right instanceof Double) return;
         throw new InterpretRuntimeException(operator, "Operands must be numbers.");
     }
 
-    private String stringify(Object object) {
+    public String stringify(Object object) {
         if (object == null) return "nil";
 
         if (object instanceof Double) {
@@ -229,4 +262,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return object.toString();
     }
 
+    public Environment getGlobals() {
+        return globals;
+    }
+
+    public Environment getEnvironment() {
+        return environment;
+    }
 }

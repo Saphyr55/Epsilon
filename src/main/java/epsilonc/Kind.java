@@ -2,14 +2,11 @@ package epsilonc;
 
 public enum Kind {
 
-    // Tokens
     UnknownToken,
     EndToken,
     LiteralToken,
     WhitespaceToken,
     Number,
-
-    // Symbols
     ReturnSymbol,
     FuncSymbol,
     ArrowSymbol,
@@ -35,8 +32,6 @@ public enum Kind {
     GreaterEqual,
     NotEqual,
     Not,
-
-    // Expressions
     String,
     ParenthesizedExpression,
     EmptyExpression,
@@ -50,6 +45,16 @@ public enum Kind {
     ClassSymbol,
     WhileSymbol,
     Less,
-    Greater, Identifier, MethodSymbol, Unmatch, True, False, PrintSymbol, MutSymbol, BinaryAnd, LogicalAnd, BinaryOr, LogicalOr, BreakSymbol,
+    Greater,
+    Identifier,
+    MethodSymbol,
+    True,
+    False,
+    MutSymbol,
+    BinaryAnd,
+    LogicalAnd,
+    BinaryOr,
+    LogicalOr,
+    BreakSymbol,
 
 }

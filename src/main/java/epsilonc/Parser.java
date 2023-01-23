@@ -33,6 +33,7 @@ public class Parser {
 
     private Statement createDeclaration() {
         try {
+            if (match(Kind.FuncSymbol)) return createFunction();
             if (match(Kind.LetSymbol)) return createLetDeclaration();
 
             return statement();
@@ -42,15 +43,34 @@ public class Parser {
         }
     }
 
+    private Statement createFunction() {
+        Token name = consume(Kind.Identifier, "Expected a function name.");
+        consume(Kind.OpenParenthesis, "Expect '(' after function name.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(Kind.CloseParenthesis)) {
+            do {
+                if (parameters.size() >= 255)
+                    throw error(peek(), "Can't have more than 255 parameters.");
+
+                parameters.add(consume(Kind.Identifier, "Expect parameter name."));
+            } while (match(Kind.CommaSymbol));
+        }
+        consume(Kind.CloseParenthesis, "Expect ')' after parameters.");
+        consume(Kind.OpenBracket, "Expect '{' before function body.");
+        List<Statement> body = createBlock();
+        return new FunctionStatement(name, parameters, body);
+    }
+
     private Statement createLetDeclaration() {
 
+        boolean mutable = match(Kind.MutSymbol);
         Token name = consume(Kind.Identifier, "Expect variable name.");
         Expression initializer = null;
 
         if (match(Kind.Assign)) initializer = expression();
 
         consume(Kind.Semicolon, "Expect ';' after variable declaration.");
-        return new LetStatement(name, initializer);
+        return new LetStatement(name, initializer, mutable);
     }
 
     private Statement statement() {
@@ -58,16 +78,23 @@ public class Parser {
         if (match(Kind.BreakSymbol)) return new BreakStatement();
         if (match(Kind.WhileSymbol)) return createWhileStatement();
         if (match(Kind.IfSymbol)) return createIfStatement();
-        if (match(Kind.PrintSymbol)) return createPrintStatement();
+        if (match(Kind.ReturnSymbol)) return createReturnStatement();
         if (match(Kind.OpenBracket)) return new BlockStatement(createBlock());
         return createExpressionStatement();
+    }
+
+    private Statement createReturnStatement() {
+        Token kw = previous();
+        Expression value = check(Kind.Semicolon) ? null : expression();
+        consume(Kind.Semicolon, "Expected ';' after return value.");
+        return new ReturnStatement(kw, value);
     }
 
     private Statement createForStatement() {
 
         consume(Kind.OpenParenthesis, "Expected '(' after 'for' loop");
 
-        Statement init = null;
+        Statement init;
         if (match(Kind.Semicolon)) init = null;
         else if (match(Kind.LetSymbol)) init = createLetDeclaration();
         else init = createExpressionStatement();
@@ -126,10 +153,6 @@ public class Parser {
         return new ExpressionStatement(expressionConsumeStatement());
     }
 
-    private Statement createPrintStatement() {
-        return new PrintStatement(expressionConsumeStatement());
-    }
-
     private Expression expressionConsumeStatement() {
         Expression value = expression();
         consume(Kind.Semicolon, "Expect ';' after value.");
@@ -144,15 +167,14 @@ public class Parser {
         Expression expression = or();
 
         if (match(Kind.Assign)) {
+
             Token equals = previous();
             Expression value = or();
 
-            if (expression instanceof LetExpression le) {
-                Token name = le.getName();
-                return new AssignExpression(name, value);
-            }
+            if (expression instanceof LetExpression le)
+                return new AssignExpression(le.getName(), value);
 
-            error(equals, "Invalid assignment target.");
+            throw error(equals, "Invalid assignment target.");
         }
 
         return expression;
@@ -235,7 +257,33 @@ public class Parser {
             Expression right = unary();
             return new UnaryExpression(operator, right);
         }
-        return primary();
+        return call();
+    }
+
+    private Expression call() {
+        Expression expression = primary();
+        boolean run = true;
+        while (run) {
+            if (match(Kind.OpenParenthesis)) expression = finishCall(expression);
+            else run = false;
+        }
+        return expression;
+    }
+
+    private Expression finishCall(Expression callee) {
+        List<Expression> arguments = new ArrayList<>();
+        if (!check(Kind.CloseParenthesis)) {
+            do {
+                if (arguments.size() >= 255) {
+                    throw error(peek(), "Can't have more than 255 arguments.");
+                }
+                arguments.add(expression());
+            } while (match(Kind.CommaSymbol));
+        }
+
+        Token paren = consume(Kind.CloseParenthesis, "Expect ')' after arguments.");
+
+        return new CallExpression(callee, paren, arguments);
     }
 
     private Expression primary() {

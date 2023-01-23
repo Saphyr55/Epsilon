@@ -5,15 +5,9 @@ import epsilonc.Token;
 public final class LetExpression implements Expression {
 
     private Token name;
-    private boolean isMutable;
-
-    public LetExpression(Token name, boolean isMutable) {
-        this.name = name;
-        this.isMutable = isMutable;
-    }
 
     public LetExpression(Token name) {
-        this(name, false);
+        this.name = name;
     }
 
     @Override
