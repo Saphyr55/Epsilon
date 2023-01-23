@@ -102,11 +102,14 @@ public class Parser {
     }
 
     private Statement createIfStatement() {
+
         consume(Kind.OpenParenthesis, "Expected '(' after if.");
         Expression condition = expression();
-        consume(Kind.OpenParenthesis, "Expected ')' after if condition.");
+        consume(Kind.CloseParenthesis, "Expected ')' after if condition.");
+
         Statement thenBranch = statement();
         Statement elseBranch = match(Kind.ElseSymbol) ? statement() : null;
+
         return new IfStatement(condition, thenBranch, elseBranch);
     }
 
@@ -239,7 +242,7 @@ public class Parser {
 
         if (match(Kind.False)) return new LiteralExpression(false);
         if (match(Kind.True)) return new LiteralExpression(true);
-        if (match(Kind.Nil)) return new LiteralExpression(null);
+        if (match(Kind.NullSymbol)) return new LiteralExpression(null);
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
 

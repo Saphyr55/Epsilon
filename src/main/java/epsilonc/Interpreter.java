@@ -136,13 +136,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                 if (left instanceof Double l && right instanceof String r) yield l + r;
 
                 if (left == null) {
-                    if (right instanceof String r) yield Syntax.Word.Nil + r;
-                    if (right instanceof Double r) yield Syntax.Word.Nil + r;
+                    if (right instanceof String r) yield Syntax.Word.Null + r;
+                    if (right instanceof Double r) yield Syntax.Word.Null + r;
                 }
 
                 if (right == null) {
-                    if (left instanceof String l) yield l + Syntax.Word.Nil;
-                    if (left instanceof Double l) yield l + Syntax.Word.Nil;
+                    if (left instanceof String l) yield l + Syntax.Word.Null;
+                    if (left instanceof Double l) yield l + Syntax.Word.Null;
                 }
 
                 throw new InterpretRuntimeException(op, "Operands must be two numbers or two strings.");

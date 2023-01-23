@@ -42,7 +42,7 @@ public enum Kind {
     EmptyExpression,
     BinaryExpression,
     UnknownExpression,
-    Nil,
+    NullSymbol,
     IfSymbol,
     ElseSymbol,
     ThisSymbol,

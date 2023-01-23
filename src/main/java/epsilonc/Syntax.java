@@ -26,16 +26,14 @@ public final class Syntax {
         public static final String Else = "else";
         @Key(kind = Kind.IfSymbol)
         public static final String If = "if";
-        @Key(kind = Kind.Nil)
-        public static final String Nil = "nil";
+        @Key(kind = Kind.NullSymbol)
+        public static final String Null = "null";
         @Key(kind = Kind.ForSymbol)
         public static final String For = "for";
         @Key(kind = Kind.ThisSymbol)
         public static final String This = "this";
         @Key(kind = Kind.WhileSymbol)
         public static final String While = "while";
-        @Key(kind = Kind.MethodSymbol)
-        public static final String Method = "method";
         @Key(kind = Kind.BreakSymbol)
         public static final String Break = "break";
     }
