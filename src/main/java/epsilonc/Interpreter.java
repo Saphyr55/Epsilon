@@ -2,7 +2,7 @@ package epsilonc;
 
 import epsilonc.core.InterpretRuntimeException;
 import epsilonc.expression.*;
-import epsilonc.stataments.*;
+import epsilonc.statement.*;
 
 import java.util.List;
 
@@ -13,19 +13,29 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     private Environment environment = new Environment();
 
-
     public void interpret(List<Statement> statements) {
         try {
             for (Statement statement : statements)
                 execute(statement);
-
         } catch (InterpretRuntimeException error) {
             Diagnostic.sendInterpretError(error);
         }
     }
 
+
     private void execute(Statement statement) {
         statement.accept(this);
+    }
+
+    private void executeBlock(List<Statement> statements, Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+            for (Statement statement : statements)
+                execute(statement);
+        } finally {
+            this.environment = previous;
+        }
     }
 
     @Override
@@ -48,6 +58,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             value = evaluate(statement.getInitializer());
 
         environment.define(statement.getName().text(), value);
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStatement(BlockStatement statement) {
+        executeBlock(statement.getStatements(), new Environment(environment));
         return null;
     }
 
@@ -95,6 +111,16 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                 if (left instanceof String l && right instanceof Double r) yield l + r;
                 if (left instanceof Double l && right instanceof String r) yield l + r;
 
+                if (left == null) {
+                    if (right instanceof String r) yield Syntax.Word.Nil + r;
+                    if (right instanceof Double r) yield Syntax.Word.Nil + r;
+                }
+
+                if (right == null) {
+                    if (left instanceof String l) yield l + Syntax.Word.Nil;
+                    if (left instanceof Double l) yield l + Syntax.Word.Nil;
+                }
+
                 throw new InterpretRuntimeException(op, "Operands must be two numbers or two strings.");
             }
             default -> null;
@@ -130,6 +156,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return environment.get(expression.getName());
     }
 
+    @Override
+    public Object visitAssignExpression(AssignExpression assignExpression) {
+        Object value = evaluate(assignExpression);
+        environment.assign(assignExpression.getName(), value);
+        return value;
+    }
+
     private Object evaluate(Expression expression) {
         return expression.accept(this);
     }
@@ -148,11 +181,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (object == null) return "nil";
 
         if (object instanceof Double) {
-            String text = object.toString();
-            if (text.endsWith(".0")) {
-                text = text.substring(0, text.length() - 2);
+            String text_ = object.toString();
+            if (text_.endsWith(".0")) {
+                text_ = text_.substring(0, text_.length() - 2);
             }
-            return text;
+            return text_;
         }
 
         return object.toString();

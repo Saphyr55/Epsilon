@@ -49,7 +49,7 @@ public class Syntax {
         public static final String OpenBrackets = "{";
         public static final String CloseBrackets = "}";
         public static final String Colon = ":";
-        @Key(kind = Kind.Affect)
+        @Key(kind = Kind.Assign)
         @Matching(match = "=", kind = Kind.Equal)
         public static final String Equal = "=";
         public static final String Semicolon = ";";

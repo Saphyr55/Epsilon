@@ -14,7 +14,7 @@ public enum Kind {
     FuncSymbol,
     ArrowSymbol,
     LetSymbol,
-    Affect,
+    Assign,
     CloseBracket,
     OpenBracket,
     Semicolon,

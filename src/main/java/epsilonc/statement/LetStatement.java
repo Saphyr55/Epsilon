@@ -1,4 +1,4 @@
-package epsilonc.stataments;
+package epsilonc.statement;
 
 import epsilonc.Token;
 import epsilonc.expression.Expression;

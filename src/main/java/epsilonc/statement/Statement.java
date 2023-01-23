@@ -1,4 +1,4 @@
-package epsilonc.stataments;
+package epsilonc.statement;
 
 public interface Statement {
 

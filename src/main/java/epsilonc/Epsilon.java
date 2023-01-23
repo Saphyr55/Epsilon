@@ -3,18 +3,11 @@ package epsilonc;
 public class Epsilon {
 
     static String text = """
-            func main() {
+            class Point {
+                    
+            }
             
-                class Point {
-                
-                    x: int;
-                    y: int;
-                    
-                    method sum() -> int {
-                        return x + y;
-                    }
-                    
-                }
+            func main() {
                 
                 print "Hello World!";
             
@@ -22,15 +15,20 @@ public class Epsilon {
             """ ;
 
     static String code = """
-                print "Hello World!"
+                let name = "Andy";
+                {
+                    let bonjour = "Bonjour";
+                    print bonjour + " " + name + "\n";
+                }
+                
                 print( 1 + 1 + 9 - 4 / 5);
             """;
 
     public static void main(String[] args) {
         Interpreter interpreter = new Interpreter();
         Parser parser = Parser.createParser(code);
+        parser.showTokens();
         interpreter.interpret(parser.parse());
     }
-
 
 }

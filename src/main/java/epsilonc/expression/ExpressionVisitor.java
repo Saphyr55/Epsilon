@@ -7,5 +7,6 @@ public interface ExpressionVisitor<R>  {
    R visitLiteralExpr(LiteralExpression expr);
    R visitUnaryExpr(UnaryExpression expr);
    R visitLetExpression(LetExpression letExpression);
+   R visitAssignExpression(AssignExpression assignExpression);
 
 }

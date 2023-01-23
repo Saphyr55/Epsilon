@@ -2,10 +2,7 @@ package epsilonc;
 
 import epsilonc.core.ParseException;
 import epsilonc.expression.*;
-import epsilonc.stataments.ExpressionStatement;
-import epsilonc.stataments.LetStatement;
-import epsilonc.stataments.PrintStatement;
-import epsilonc.stataments.Statement;
+import epsilonc.statement.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +32,9 @@ public class Parser {
 
     private Statement createDeclaration() {
         try {
-            if (match(Kind.LetSymbol)) return createLetDeclaration();
+            if (match(Kind.LetSymbol))
+                return createLetDeclaration();
+
             return createStatement();
         } catch (ParseException e) {
             synchronize();
@@ -48,8 +47,7 @@ public class Parser {
         Token name = consume(Kind.Identifier, "Expect variable name.");
         Expression initializer = null;
 
-        if (match(Kind.Equal))
-            initializer = expression();
+        if (match(Kind.Assign)) initializer = expression();
 
         consume(Kind.Semicolon, "Expect ';' after variable declaration.");
         return new LetStatement(name, initializer);
@@ -58,7 +56,17 @@ public class Parser {
 
     private Statement createStatement() {
         if (match(Kind.PrintSymbol)) return printStatement();
+        if (match(Kind.OpenBracket)) return new BlockStatement(createBlock());
         return expressionStatement();
+    }
+
+    private List<Statement> createBlock() {
+        List<Statement> statements = new ArrayList<>();
+        while (!check(Kind.CloseBracket) && !isAtEnd()) {
+            statements.add(createDeclaration());
+        }
+        consume(Kind.CloseBracket,  "Expect '}' after block.");
+        return statements;
     }
 
     private Statement expressionStatement() {
@@ -76,10 +84,30 @@ public class Parser {
     }
 
     private Expression expression() {
-        return equality();
+        return assignment();
+    }
+
+    private Expression assignment() {
+
+        Expression expression = equality();
+
+        if (match(Kind.Assign)) {
+            Token equals = previous();
+            Expression value = assignment();
+
+            if (expression instanceof LetExpression le) {
+                Token name = le.getName();
+                return new AssignExpression(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expression;
     }
 
     private Expression equality() {
+
         Expression expr = comparison();
 
         while (match(Kind.NotEqual, Kind.Equal)) {
@@ -93,6 +121,7 @@ public class Parser {
 
     private Expression comparison() {
         Expression expr = term();
+
         while (match(Kind.Greater, Kind.GreaterEqual, Kind.Less, Kind.LessEqual)) {
             Token operator = previous();
             Expression right = term();
@@ -137,6 +166,7 @@ public class Parser {
     }
 
     private Expression primary() {
+
         if (match(Kind.False)) return new LiteralExpression(false);
         if (match(Kind.True)) return new LiteralExpression(true);
         if (match(Kind.Nil)) return new LiteralExpression(null);
@@ -182,7 +212,6 @@ public class Parser {
 
         return new ParseException();
     }
-
 
     private boolean match(Kind... kinds) {
         for (Kind kind : kinds)
