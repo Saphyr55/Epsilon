@@ -1,5 +1,6 @@
 package epsilonc.statement;
 
+import epsilonc.Environment;
 import epsilonc.Token;
 import epsilonc.core.FuncCallable;
 
@@ -17,8 +18,8 @@ public class FunctionStatement implements Statement {
         this.body = body;
     }
 
-    public FuncCallable createCallable() {
-        return new FuncCallable(this);
+    public FuncCallable createCallable(Environment environment) {
+        return new FuncCallable(environment, this);
     }
 
     @Override

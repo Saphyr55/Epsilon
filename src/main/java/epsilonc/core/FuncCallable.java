@@ -10,14 +10,16 @@ import java.util.List;
 public class FuncCallable implements FunctionCallable {
 
     private final FunctionStatement declaration;
+    private final Environment closure;
 
-    public FuncCallable(FunctionStatement declaration) {
+    public FuncCallable(Environment closure, FunctionStatement declaration) {
+        this.closure = closure;
         this.declaration = declaration;
     }
 
     @Override
     public Object call(Interpreter interpreter, List<Object> args) {
-        Environment environment = new Environment(interpreter.getGlobals());
+        Environment environment = new Environment(closure);
         for (int i = 0; i < declaration.getParams().size(); i++) {
             environment.define(declaration.getParams().get(i).text(), args.get(i));
         }
@@ -39,4 +41,7 @@ public class FuncCallable implements FunctionCallable {
         return "<fn " + declaration.getName().text() + ">";
     }
 
+    public Environment getClosure() {
+        return closure;
+    }
 }

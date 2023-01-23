@@ -24,12 +24,14 @@ public class Lexer {
     }
 
     public List<Token> scan() {
-        while (!isAtEnd()) {
 
+        while (!isAtEnd()) {
             start = position;
             nextToken();
         }
+
         tokens.add(new Token(Kind.EndToken, null, "\0", line, col));
+
         return tokens;
     }
 

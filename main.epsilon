@@ -7,15 +7,16 @@ func fib(n) {
     return fib(n - 2) + fib(n - 1);
 }
 
-let mut name = "Andy";
-printClock();
+let getFib = func (n) {
+    return fib(n);
+};
 
-name = "Bonjour";
+let name = "Andy";
+
+printClock();
 
 for (let mut i = 0; i < 10; i = i + 1) {
     if (i != 0) println(name);
 }
 
-
-
-println(fib(10));
+println(getFib(15));

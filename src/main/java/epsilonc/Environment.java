@@ -17,11 +17,10 @@ public class Environment {
             this.value = value;
             this.isMutable = isMutable;
         }
-
     }
 
     private final Map<String, Let> values;
-    private Environment enclosing;
+    private final Environment enclosing;
 
     public Environment(Environment enclosing) {
         this.enclosing = enclosing;
@@ -33,9 +32,9 @@ public class Environment {
     }
 
     public Object get(Token name) {
-        if (values.containsKey(name.text())) {
+
+        if (values.containsKey(name.text()))
             return values.get(name.text()).value;
-        }
 
         if (enclosing != null) return enclosing.get(name);
 
@@ -49,7 +48,6 @@ public class Environment {
     public void define(String name, Object value) {
         values.put(name, new Let(value, false));
     }
-
 
     public void assign(Token name, Object value) {
 

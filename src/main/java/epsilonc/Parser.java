@@ -33,7 +33,7 @@ public class Parser {
 
     private Statement createDeclaration() {
         try {
-            if (match(Kind.FuncSymbol)) return createFunction();
+            if (match(Kind.FuncSymbol)) return createFunction(false);
             if (match(Kind.LetSymbol)) return createLetDeclaration();
 
             return statement();
@@ -43,8 +43,12 @@ public class Parser {
         }
     }
 
-    private Statement createFunction() {
-        Token name = consume(Kind.Identifier, "Expected a function name.");
+    private Statement createFunction(boolean isAnonymous) {
+
+        Token name = null;
+        if (!isAnonymous)
+            name = consume(Kind.Identifier, "Expected a function name.");
+
         consume(Kind.OpenParenthesis, "Expect '(' after function name.");
         List<Token> parameters = new ArrayList<>();
         if (!check(Kind.CloseParenthesis)) {
@@ -55,9 +59,12 @@ public class Parser {
                 parameters.add(consume(Kind.Identifier, "Expect parameter name."));
             } while (match(Kind.CommaSymbol));
         }
+
         consume(Kind.CloseParenthesis, "Expect ')' after parameters.");
         consume(Kind.OpenBracket, "Expect '{' before function body.");
+
         List<Statement> body = createBlock();
+
         return new FunctionStatement(name, parameters, body);
     }
 
@@ -293,6 +300,7 @@ public class Parser {
         if (match(Kind.NullSymbol)) return new LiteralExpression(null);
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
+        if (match(Kind.FuncSymbol)) return new AnonymousFuncExpression((FunctionStatement) createFunction(true));
 
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();

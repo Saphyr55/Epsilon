@@ -95,7 +95,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-        environment.define(statement.getName().text(), statement.createCallable(), true);
+        environment.define(statement.getName().text(), statement.createCallable(environment), true);
         return null;
     }
 
@@ -191,7 +191,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitAssignExpression(AssignExpression expression) {
-
         Object value = evaluate(expression.getValue());
         environment.assign(expression.getName(), value);
         return value;
@@ -230,6 +229,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                 "Can only call functions and classes.");
     }
 
+    @Override
+    public Object visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
+        return expression.getStatement().createCallable(environment);
+    }
+
     public Object evaluate(Expression expression) {
         return expression.accept(this);
     }
@@ -249,6 +253,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     public String stringify(Object object) {
+
         if (object == null) return "nil";
 
         if (object instanceof Double) {
