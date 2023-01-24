@@ -1,23 +1,19 @@
-func printClock() {
-    println("Temps d'exécution est à " + clock());
+class Optional  {
+
+    let mut content;
+
+    method ifPresent(fn) {
+        fn(null);
+    }
+
 }
 
-func fib(n) {
-    if (n <= 1) return n;
-    return fib(n - 2) + fib(n - 1);
-}
+let optional = Optional();
+optional.content = 100;
 
-let getFib = func (n) {
-    return fib(n);
-};
+optional.ifPresent(func (content) {
+   println(content);
+});
 
-let name = "Andy";
 
-printClock();
-
-for (let mut i = 0; i < 10; i = i + 1) {
-    if (i != 0) println(name);
-}
-
-println(getFib(15));
 

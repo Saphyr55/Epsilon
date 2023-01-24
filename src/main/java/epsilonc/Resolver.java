@@ -69,7 +69,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitCallExpression(CallExpression expression) {
-        resolve(expression.getCallee());
+        resolve(expression.getCallable());
         for (Expression argument : expression.getArguments()) resolve(argument);
         return null;
     }
@@ -77,6 +77,19 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     @Override
     public Void visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
         resolve(expression.getStatement());
+        return null;
+    }
+
+    @Override
+    public Void visitGetterExpression(GetterExpression expression) {
+        resolve(expression.getObjet());
+        return null;
+    }
+
+    @Override
+    public Void visitSetterExpression(SetterExpression expression) {
+        resolve(expression.getValue());
+        resolve(expression.getObject());
         return null;
     }
 
@@ -99,9 +112,8 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     @Override
     public Void visitLetStatement(LetStatement statement) {
         declare(statement.getName());
-        if (statement.getInitializer() != null) {
+        if (statement.getInitializer() != null)
             resolve(statement.getInitializer());
-        }
         define(statement.getName());
         return null;
     }
@@ -142,10 +154,18 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
-    void resolve(List<Statement> statements) {
-        for (Statement statement : statements) {
-            resolve(statement);
-        }
+    @Override
+    public Void visitClassStatement(ClassStatement statement) {
+        declare(statement.getName());
+        define(statement.getName());
+        resolve(statement.getFields());
+        resolve(statement.getStaticFunctions());
+        resolve(statement.getMethods());
+        return null;
+    }
+
+    void resolve(List<? extends Statement> statements) {
+        statements.forEach(this::resolve);
     }
 
     private void beginScope() {

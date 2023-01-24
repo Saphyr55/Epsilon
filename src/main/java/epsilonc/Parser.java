@@ -4,9 +4,7 @@ import epsilonc.core.ParseException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Parser {
 
@@ -27,13 +25,14 @@ public class Parser {
 
     public List<Statement> parse() {
         List<Statement> statements = new ArrayList<>();
-        while (!isAtEnd()) statements.add(createDeclaration());
+        while (!isAtEnd())
+            statements.add(createDeclaration());
         return statements;
     }
-
     private Statement createDeclaration() {
         try {
-            if (match(Kind.FuncSymbol)) return createFunction(false);
+            if (match(Kind.ClassSymbol)) return createClassStatement();
+            if (match(Kind.FuncSymbol)) return createFunction();
             if (match(Kind.LetSymbol)) return createLetDeclaration();
 
             return statement();
@@ -41,6 +40,38 @@ public class Parser {
             synchronize();
             return null;
         }
+    }
+
+    private Statement createClassStatement() {
+
+        Token name = consume(Kind.Identifier, "Expected a name for declaring class.");
+        consume(Kind.OpenBracket, "Expected '{' before class body.");
+
+        List<FunctionStatement> methods = new ArrayList<>();
+        List<FunctionStatement> functions = new ArrayList<>();
+        List<LetStatement> fields = new ArrayList<>();
+
+        while (!check(Kind.CloseBracket) && !isAtEnd()) {
+
+            if (match(Kind.Identifier) && previous().text().equals(Syntax.Contextual.Method))
+                methods.add(createFunction());
+            else if (match(Kind.FuncSymbol))
+                functions.add(createFunction());
+            else if (match(Kind.LetSymbol))
+                fields.add((LetStatement) createLetDeclaration());
+
+        }
+
+        consume(Kind.CloseBracket, "Expected '}' after class body.");
+        return new ClassStatement(name, fields, methods, functions);
+    }
+
+    private FunctionStatement createFunction() {
+        return (FunctionStatement) createFunction(false);
+    }
+
+    private FunctionStatement createAnonymousFunction() {
+        return (FunctionStatement) createFunction(true);
     }
 
     private Statement createFunction(boolean isAnonymous) {
@@ -165,6 +196,7 @@ public class Parser {
         consume(Kind.Semicolon, "Expect ';' after value.");
         return value;
     }
+
     private Expression expression() {
         return assignment();
     }
@@ -180,7 +212,9 @@ public class Parser {
 
             if (expression instanceof LetExpression le)
                 return new AssignExpression(le.getName(), value);
-
+            else if (expression instanceof GetterExpression getter) {
+                return new SetterExpression(getter.getObjet(), getter.getName(), value);
+            }
             throw report(equals, "Invalid assignment target.");
         }
 
@@ -269,10 +303,14 @@ public class Parser {
 
     private Expression call() {
         Expression expression = primary();
-        boolean run = true;
-        while (run) {
+        boolean search = true;
+        while (search) {
             if (match(Kind.OpenParenthesis)) expression = finishCall(expression);
-            else run = false;
+            else if (match(Kind.Dot)) {
+                Token name = consume(Kind.Identifier, "Expect property name after '.'.");
+                expression = new GetterExpression(expression, name);
+            }
+            else search = false;
         }
         return expression;
     }
@@ -300,7 +338,7 @@ public class Parser {
         if (match(Kind.NullSymbol)) return new LiteralExpression(null);
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
-        if (match(Kind.FuncSymbol)) return new AnonymousFuncExpression((FunctionStatement) createFunction(true));
+        if (match(Kind.FuncSymbol)) return new AnonymousFuncExpression(createAnonymousFunction());
 
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();

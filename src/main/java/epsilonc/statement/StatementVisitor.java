@@ -10,5 +10,5 @@ public interface StatementVisitor<R> {
     R visitWhileStatement(WhileStatement whileStatement);
     R visitBreakStatement(BreakStatement breakStatement);
     R visitFunctionStatement(FunctionStatement functionStatement);
-
+    R visitClassStatement(ClassStatement classStatement);
 }

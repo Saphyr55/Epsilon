@@ -11,4 +11,7 @@ public interface ExpressionVisitor<R>  {
     R visitLogicalExpression(LogicalExpression expression);
     R visitCallExpression(CallExpression expression);
     R visitAnonymousFuncExpression(AnonymousFuncExpression expression);
+    R visitGetterExpression(GetterExpression getterExpression);
+    R visitSetterExpression(SetterExpression setterExpression);
+
 }

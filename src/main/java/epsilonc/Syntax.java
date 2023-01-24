@@ -38,6 +38,12 @@ public final class Syntax {
         public static final String Namespace = "namespace";
     }
 
+    public static final class Contextual {
+
+        public static final String Method = "method";
+
+    }
+
     public final static class Symbol {
         public static final String Space = " ";
         public static final String Ampersand = "&";

@@ -5,7 +5,7 @@ import epsilonc.core.NativeFunction;
 import epsilonc.core.ReturnRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
-import epsilonc.type.FunctionCallable;
+import epsilonc.type.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -103,6 +103,27 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
         environment.define(statement.getName().text(), statement.createCallable(environment), true);
+        return null;
+    }
+
+    @Override
+    public Void visitClassStatement(ClassStatement statement) {
+        environment.define(statement.getName().text(), null, true);
+
+        Map<String, Func> functions = new HashMap<>();
+        statement.getStaticFunctions().forEach(
+                s -> functions.put(s.getName().text(), s.createCallable(environment)));
+
+        Map<String, Let> fields = new HashMap<>();
+        statement.getFields().forEach(s -> fields.put(s.getName().text(),
+                new Let(evaluate(s.getInitializer()), s.isMutable())));
+
+        Map<String, Func> methods = new HashMap<>();
+        statement.getMethods().forEach(
+                s -> methods.put(s.getName().text(), s.createCallable(environment)));
+
+        EpsilonClass epsClass = new EpsilonClass(statement.getName().text(), methods, functions, fields);
+        environment.assign(statement.getName(), epsClass);
         return null;
     }
 
@@ -220,18 +241,18 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitCallExpression(CallExpression expression) {
-        Object callee = evaluate(expression.getCallee());
+        Object callable = evaluate(expression.getCallable());
 
         List<Object> arguments = expression.getArguments().stream().toList()
                         .stream().map(this::evaluate).toList();
 
-        if (callee instanceof FunctionCallable callable) {
-            if (arguments.size() != callable.arity()) {
+        if (callable instanceof Callable c) {
+            if (arguments.size() != c.arity()) {
                 throw new InterpretRuntimeException(expression.getParen(), "Expected " +
-                        callable.arity() + " arguments but got " +
+                        c.arity() + " arguments but got " +
                         arguments.size() + ".");
             }
-            return callable.call(this, arguments);
+            return c.call(this, arguments);
         }
 
         throw new InterpretRuntimeException(expression.getParen(),
@@ -243,7 +264,28 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return expression.getStatement().createCallable(environment);
     }
 
+    @Override
+    public Object visitGetterExpression(GetterExpression expression) {
+        Object object = evaluate(expression.getObjet());
+        if (object instanceof Instance instance) {
+            return instance.get(expression.getName());
+        }
+        throw new InterpretRuntimeException(expression.getName(), "Only instances have properties.");
+    }
+
+    @Override
+    public Object visitSetterExpression(SetterExpression expression) {
+        Object object = evaluate(expression.getObject());
+        if (object instanceof Instance instance) {
+            Object value = evaluate(expression.getValue());
+            instance.set(expression.getName(), value);
+            return value;
+        }
+        throw new InterpretRuntimeException(expression.getName(), "Only instance have fields");
+    }
+
     public Object evaluate(Expression expression) {
+        if (expression == null) return null;
         return expression.accept(this);
     }
 
@@ -263,7 +305,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     public String stringify(Object object) {
 
-        if (object == null) return "nil";
+        if (object == null) return Syntax.Word.Null;
 
         if (object instanceof Double) {
             String text_ = object.toString();

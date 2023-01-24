@@ -26,7 +26,7 @@ public enum Kind {
     Slash,
     Star,
     CommaSymbol,
-    Period,
+    Dot,
     Equal,
     LessEqual,
     GreaterEqual,

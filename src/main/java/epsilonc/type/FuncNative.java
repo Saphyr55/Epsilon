@@ -4,7 +4,7 @@ import epsilonc.Interpreter;
 
 import java.util.List;
 
-public class FuncNative implements FunctionCallable {
+public class FuncNative implements Callable {
 
     private final int arity;
     private final Callable callable;
@@ -15,8 +15,8 @@ public class FuncNative implements FunctionCallable {
     }
 
     @Override
-    public Object call(Interpreter interpreter, List<Object> arguments) {
-        return callable.call(interpreter, arguments);
+    public Object call(Interpreter inter, List<Object> args) {
+        return callable.call(inter, args);
     }
 
     @Override

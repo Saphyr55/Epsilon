@@ -3,21 +3,12 @@ package epsilonc;
 import epsilonc.core.AssignException;
 import epsilonc.core.DeclarationException;
 import epsilonc.core.InterpretRuntimeException;
+import epsilonc.type.Let;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-
-    private static class Let {
-        Object value;
-        boolean isMutable;
-
-        Let(Object value, boolean isMutable) {
-            this.value = value;
-            this.isMutable = isMutable;
-        }
-    }
 
     private final Map<String, Let> values;
     private final Environment enclosing;
@@ -34,7 +25,7 @@ public class Environment {
     public Object get(Token name) {
 
         if (values.containsKey(name.text()))
-            return values.get(name.text()).value;
+            return values.get(name.text()).getValue();
 
         if (enclosing != null) return enclosing.get(name);
 
@@ -52,13 +43,11 @@ public class Environment {
     public void assignAt(Integer distance, Token name, Object value) {
         if (ancestor(distance).values.containsKey(name.text())) {
             Let let = ancestor(distance).values.get(name.text());
-            if (let.isMutable) {
-                let.value = value;
+            if (let.isMutable()) {
+                let.setValue(value);
                 return;
             }
-            throw new InterpretRuntimeException(name,
-                    "Cannot change the value of " + name.text() +
-                            ", please write 'let mut " + name.text() + ";'");
+            throw new InterpretRuntimeException(name, "Cannot change the value of " + name.text() + ", please write 'let mut " + name.text() + ";'");
         }
     }
 
@@ -66,8 +55,8 @@ public class Environment {
 
         if (values.containsKey(name.text())) {
             Let let = values.get(name.text());
-            if (let.isMutable) {
-                let.value = value;
+            if (let.isMutable()) {
+                let.setValue(value);
                 return;
             }
             throw new InterpretRuntimeException(name,
@@ -77,8 +66,8 @@ public class Environment {
 
         if (enclosing != null) {
             Let let = enclosing.values.get(name.text());
-            if (let.isMutable) {
-                let.value = value;
+            if (let.isMutable()) {
+                let.setValue(value);
                 return;
             }
         }
@@ -87,7 +76,7 @@ public class Environment {
     };
 
     public Object getAt(Integer distance, String text) {
-        return ancestor(distance).values.get(text).value;
+        return ancestor(distance).values.get(text).getValue();
     }
 
     Environment ancestor(int distance) {

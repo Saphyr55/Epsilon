@@ -51,7 +51,7 @@ public class Lexer {
             case Symbol.Pipeline -> addToken(match(Symbol.Pipeline) ? Kind.LogicalOr : Kind.BinaryOr);
             case Symbol.OpenBrackets -> addToken(Kind.OpenBracket);
             case Symbol.CloseBrackets -> addToken(Kind.CloseBracket);
-            case Symbol.Dot -> addToken(Kind.Period);
+            case Symbol.Dot -> addToken(Kind.Dot);
             case Symbol.Colon -> addToken(Kind.Colon);
             case Symbol.Semicolon -> addToken(Kind.Semicolon);
             case Symbol.MinusOp -> addToken(match(Symbol.Greater) ? Kind.ArrowSymbol : Kind.Minus);

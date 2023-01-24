@@ -7,7 +7,7 @@ import epsilonc.statement.FunctionStatement;
 
 import java.util.List;
 
-public class Func implements FunctionCallable {
+public class Func implements Callable {
 
     private final FunctionStatement declaration;
     private final Environment closure;
@@ -18,13 +18,13 @@ public class Func implements FunctionCallable {
     }
 
     @Override
-    public Object call(Interpreter interpreter, List<Object> args) {
+    public Object call(Interpreter inter, List<Object> args) {
         Environment environment = new Environment(closure);
         for (int i = 0; i < declaration.getParams().size(); i++) {
             environment.define(declaration.getParams().get(i).text(), args.get(i));
         }
         try {
-            interpreter.executeBlock(declaration.getBody(), environment);
+            inter.executeBlock(declaration.getBody(), environment);
         } catch (ReturnRuntimeException returnValue) {
             return returnValue.getValue();
         }

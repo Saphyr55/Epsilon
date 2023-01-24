@@ -21,7 +21,7 @@ public class CallExpression implements Expression {
         return visitor.visitCallExpression(this);
     }
 
-    public Expression getCallee() {
+    public Expression getCallable() {
         return callee;
     }
 
