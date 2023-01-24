@@ -11,4 +11,6 @@ public interface StatementVisitor<R> {
     R visitFunctionStatement(FunctionStatement functionStatement);
     R visitClassStatement(ClassStatement classStatement);
     R visitTypeStatement(TypeStatement typeStatement);
+    R visitInitStatement(InitStatement initStatement);
+
 }

@@ -133,6 +133,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Void visitInitStatement(InitStatement initStatement) {
+        return null;
+    }
+
+    @Override
     public Object visitBinaryExpression(BinaryExpression expression) {
 
         Object left = evaluate(expression.getLeft());
@@ -272,8 +277,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitGetterExpression(GetterExpression expression) {
         Object object = evaluate(expression.getObjet());
-        if (object instanceof Instance instance) {
-            return instance.get(expression.getName());
+        if (object instanceof InstanceClass instanceClass) {
+            return instanceClass.get(expression.getName());
         }
         throw new InterpretRuntimeException(expression.getName(), "Only instances have properties.");
     }
@@ -281,12 +286,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitSetterExpression(SetterExpression expression) {
         Object object = evaluate(expression.getObject());
-        if (object instanceof Instance instance) {
+        if (object instanceof InstanceClass instanceClass) {
             Object value = evaluate(expression.getValue());
-            instance.set(expression.getName(), value);
+            instanceClass.set(expression.getName(), value);
             return value;
         }
         throw new InterpretRuntimeException(expression.getName(), "Only instance have fields");
+    }
+
+    @Override
+    public Object visitBlockExpression(BlockExpression blockExpression) {
+        return new InstanceType(new Type(null, new HashMap<>()));
     }
 
     public Object evaluate(Expression expression) {

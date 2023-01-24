@@ -13,7 +13,6 @@ public class Epsilon {
     public static void main(String[] args) throws IOException {
         Interpreter interpreter = new Interpreter();
         Parser parser = Parser.createParser(Files.readString(Path.of("main.epsilon"), StandardCharsets.UTF_8));
-        parser.showTokens();
         List<Statement> statements = parser.parse();
         Resolver resolver = new Resolver(interpreter);
         resolver.resolve(statements);

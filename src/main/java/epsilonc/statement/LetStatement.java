@@ -6,13 +6,15 @@ import epsilonc.expression.Expression;
 public class LetStatement implements Statement {
 
     private final Token name;
+    private final Token type;
     private final Expression initializer;
     private final boolean mutable;
 
-    public LetStatement(Token name, Expression initializer, boolean mutable) {
+    public LetStatement(Token name, Token type, Expression initializer, boolean mutable) {
         this.name = name;
         this.initializer = initializer;
         this.mutable = mutable;
+        this.type = type;
     }
 
     public boolean isMutable() {
@@ -25,6 +27,10 @@ public class LetStatement implements Statement {
 
     public Expression getInitializer() {
         return initializer;
+    }
+
+    public Token getType() {
+        return type;
     }
 
     @Override

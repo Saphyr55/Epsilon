@@ -21,7 +21,7 @@ public class EpsilonClass implements Callable {
 
     @Override
     public Object call(Interpreter inter, List<Object> args) {
-        return new Instance(this);
+        return new InstanceClass(this);
     }
 
     public Let findFields(String name) {

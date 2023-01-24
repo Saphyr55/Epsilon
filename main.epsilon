@@ -1,4 +1,10 @@
-type Cat = {
-    mut name;
-    meow;
+
+type Window = {
+    mut height: i32;
+    mut width: i32;
+    mut title: String;
 }
+
+let mut window: Window = {
+
+};

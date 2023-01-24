@@ -1,7 +1,5 @@
 package epsilonc.expression;
 
-import epsilonc.statement.TypeStatement;
-
 public interface ExpressionVisitor<R>  {
 
     R visitBinaryExpression(BinaryExpression expression);
@@ -15,4 +13,6 @@ public interface ExpressionVisitor<R>  {
     R visitAnonymousFuncExpression(AnonymousFuncExpression expression);
     R visitGetterExpression(GetterExpression getterExpression);
     R visitSetterExpression(SetterExpression setterExpression);
+
+    R visitBlockExpression(BlockExpression blockExpression);
 }

@@ -96,6 +96,14 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     }
 
     @Override
+    public Void visitBlockExpression(BlockExpression expression) {
+        beginScope();
+        resolve(expression.getStatements());
+        endScope();
+        return null;
+    }
+
+    @Override
     public Void visitExpressionStatement(ExpressionStatement statement) {
         resolve(statement.getExpression());
         return null;
@@ -169,6 +177,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
+    @Override
+    public Void visitInitStatement(InitStatement statement) {
+        resolve(statement.getParent());
+        resolve(statement.getValue());
+        return null;
+    }
 
     void resolve(List<? extends Statement> statements) {
         statements.forEach(this::resolve);

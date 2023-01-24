@@ -116,19 +116,25 @@ public class Parser {
 
         boolean mutable = match(Kind.MutKw);
         Token name = consume(Kind.Identifier, "Expect a name before let assignment.");
+        Token type = null;
         Expression initializer = null;
-
+        if (match(Kind.Colon)) {
+            consume(Kind.Identifier, "Expected declaring type after ':'");
+            type = previous();
+        }
         if (match(Kind.Assign)) initializer = expression();
-
         consume(Kind.Semicolon, "Expect ';' after let declaration.");
-        return new LetStatement(name, initializer, mutable);
+        return new LetStatement(name, type, initializer, mutable);
     }
 
     private LetStatement createPropertyDeclaration() {
         boolean mutable = match(Kind.MutKw);
         Token name = consume(Kind.Identifier, "Expected a name for a property");
+        consume(Kind.Colon, "Expected declaring type after naming it");
+        consume(Kind.Identifier, "Expected declaring type after naming it");
+        Token type = previous();
         consume(Kind.Semicolon, "Expect ';' after property declaration.");
-        return new LetStatement(name, new LiteralExpression(null), mutable);
+        return new LetStatement(name, type, new LiteralExpression(null), mutable);
     }
 
     private Statement statement() {
@@ -221,7 +227,6 @@ public class Parser {
     }
 
     private Expression assignment() {
-
         Expression expression = or();
 
         if (match(Kind.Assign)) {
@@ -231,9 +236,8 @@ public class Parser {
 
             if (expression instanceof LetExpression le)
                 return new AssignExpression(le.getName(), value);
-            else if (expression instanceof GetterExpression ge) {
+            else if (expression instanceof GetterExpression ge)
                 return new SetterExpression(ge.getObjet(), ge.getName(), value);
-            }
             throw report(equals, "Invalid assignment target.");
         }
 
@@ -351,14 +355,13 @@ public class Parser {
     }
 
     private Expression primary() {
-
         if (match(Kind.FalseKw)) return new LiteralExpression(false);
         if (match(Kind.TrueKw)) return new LiteralExpression(true);
         if (match(Kind.NullKw)) return new LiteralExpression(null);
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
         if (match(Kind.FuncKw)) return new AnonymousFuncExpression(createAnonymousFunction());
-
+        if (match(Kind.OpenBracket)) return new BlockExpression(createBlock());
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");
@@ -425,7 +428,11 @@ public class Parser {
     }
 
     public Token previous() {
-        return tokens.get(current - 1);
+        return previous(1);
+    }
+
+    public Token previous(int offset) {
+        return tokens.get(current - offset);
     }
 
 }
