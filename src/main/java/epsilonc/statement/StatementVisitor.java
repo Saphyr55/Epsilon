@@ -8,7 +8,7 @@ public interface StatementVisitor<R> {
     R visitBlockStatement(BlockStatement statement);
     R visitIfStatement(IfStatement statement);
     R visitWhileStatement(WhileStatement whileStatement);
-    R visitBreakStatement(BreakStatement breakStatement);
     R visitFunctionStatement(FunctionStatement functionStatement);
     R visitClassStatement(ClassStatement classStatement);
+    R visitTypeStatement(TypeStatement typeStatement);
 }

@@ -25,21 +25,34 @@ public class Parser {
 
     public List<Statement> parse() {
         List<Statement> statements = new ArrayList<>();
-        while (!isAtEnd())
-            statements.add(createDeclaration());
+        while (!isAtEnd()) statements.add(createDeclaration());
         return statements;
     }
+
     private Statement createDeclaration() {
         try {
-            if (match(Kind.ClassSymbol)) return createClassStatement();
-            if (match(Kind.FuncSymbol)) return createFunction();
-            if (match(Kind.LetSymbol)) return createLetDeclaration();
+            if (match(Kind.ClassKw)) return createClassStatement();
+            if (match(Kind.FuncKw)) return createFunction();
+            if (match(Kind.LetKw)) return createLetDeclaration();
+            if (match(Kind.TypeKw)) return createTypeDeclaration();
 
             return statement();
         } catch (ParseException e) {
             synchronize();
             return null;
         }
+    }
+
+    private Statement createTypeDeclaration() {
+        Token name = consume(Kind.Identifier, "Expected a name for declaring type.");
+        consume(Kind.Assign, "Expected a '=' after naming type.");
+        consume(Kind.OpenBracket, "Expected open bracket before declaring type body.");
+        List<LetStatement> properties = new ArrayList<>();
+        while (!check(Kind.CloseBracket) && !isAtEnd())  {
+            properties.add(createPropertyDeclaration());
+        }
+        consume(Kind.CloseBracket, "Expected close bracket after declaring type body.");
+        return new TypeStatement(name, properties);
     }
 
     private Statement createClassStatement() {
@@ -55,9 +68,9 @@ public class Parser {
 
             if (match(Kind.Identifier) && previous().text().equals(Syntax.Contextual.Method))
                 methods.add(createFunction());
-            else if (match(Kind.FuncSymbol))
+            else if (match(Kind.FuncKw))
                 functions.add(createFunction());
-            else if (match(Kind.LetSymbol))
+            else if (match(Kind.LetKw))
                 fields.add((LetStatement) createLetDeclaration());
 
         }
@@ -101,22 +114,28 @@ public class Parser {
 
     private Statement createLetDeclaration() {
 
-        boolean mutable = match(Kind.MutSymbol);
-        Token name = consume(Kind.Identifier, "Expect variable name.");
+        boolean mutable = match(Kind.MutKw);
+        Token name = consume(Kind.Identifier, "Expect a name before let assignment.");
         Expression initializer = null;
 
         if (match(Kind.Assign)) initializer = expression();
 
-        consume(Kind.Semicolon, "Expect ';' after variable declaration.");
+        consume(Kind.Semicolon, "Expect ';' after let declaration.");
         return new LetStatement(name, initializer, mutable);
     }
 
+    private LetStatement createPropertyDeclaration() {
+        boolean mutable = match(Kind.MutKw);
+        Token name = consume(Kind.Identifier, "Expected a name for a property");
+        consume(Kind.Semicolon, "Expect ';' after property declaration.");
+        return new LetStatement(name, new LiteralExpression(null), mutable);
+    }
+
     private Statement statement() {
-        if (match(Kind.ForSymbol)) return createForStatement();
-        if (match(Kind.BreakSymbol)) return new BreakStatement();
-        if (match(Kind.WhileSymbol)) return createWhileStatement();
-        if (match(Kind.IfSymbol)) return createIfStatement();
-        if (match(Kind.ReturnSymbol)) return createReturnStatement();
+        if (match(Kind.ForKw)) return createForStatement();
+        if (match(Kind.WhileKw)) return createWhileStatement();
+        if (match(Kind.IfKw)) return createIfStatement();
+        if (match(Kind.ReturnKw)) return createReturnStatement();
         if (match(Kind.OpenBracket)) return new BlockStatement(createBlock());
         return createExpressionStatement();
     }
@@ -134,7 +153,7 @@ public class Parser {
 
         Statement init;
         if (match(Kind.Semicolon)) init = null;
-        else if (match(Kind.LetSymbol)) init = createLetDeclaration();
+        else if (match(Kind.LetKw)) init = createLetDeclaration();
         else init = createExpressionStatement();
 
         Expression condition = check(Kind.Semicolon) ? null : expression();
@@ -173,7 +192,7 @@ public class Parser {
         consume(Kind.CloseParenthesis, "Expected ')' after if condition.");
 
         Statement thenBranch = statement();
-        Statement elseBranch = match(Kind.ElseSymbol) ? statement() : null;
+        Statement elseBranch = match(Kind.ElseKw) ? statement() : null;
 
         return new IfStatement(condition, thenBranch, elseBranch);
     }
@@ -212,8 +231,8 @@ public class Parser {
 
             if (expression instanceof LetExpression le)
                 return new AssignExpression(le.getName(), value);
-            else if (expression instanceof GetterExpression getter) {
-                return new SetterExpression(getter.getObjet(), getter.getName(), value);
+            else if (expression instanceof GetterExpression ge) {
+                return new SetterExpression(ge.getObjet(), ge.getName(), value);
             }
             throw report(equals, "Invalid assignment target.");
         }
@@ -333,12 +352,12 @@ public class Parser {
 
     private Expression primary() {
 
-        if (match(Kind.False)) return new LiteralExpression(false);
-        if (match(Kind.True)) return new LiteralExpression(true);
-        if (match(Kind.NullSymbol)) return new LiteralExpression(null);
+        if (match(Kind.FalseKw)) return new LiteralExpression(false);
+        if (match(Kind.TrueKw)) return new LiteralExpression(true);
+        if (match(Kind.NullKw)) return new LiteralExpression(null);
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
-        if (match(Kind.FuncSymbol)) return new AnonymousFuncExpression(createAnonymousFunction());
+        if (match(Kind.FuncKw)) return new AnonymousFuncExpression(createAnonymousFunction());
 
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
@@ -354,13 +373,9 @@ public class Parser {
         while (!isAtEnd()) {
             if (previous().kind() == Kind.Semicolon) return;
             switch (peek().kind()) {
-                case ClassSymbol,
-                     FuncSymbol,
-                     LetSymbol,
-                     ForSymbol,
-                     IfSymbol,
-                     WhileSymbol,
-                     ReturnSymbol -> { return; }
+                case ClassKw, FuncKw, LetKw, ForKw,
+                        IfKw, MutKw, WhileKw, TypeKw, ReturnKw ->
+                { return; }
             }
             advance();
         }

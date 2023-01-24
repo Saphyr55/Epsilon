@@ -1,4 +1,4 @@
-package epsilonc.type;
+package epsilonc.object;
 
 public class Let {
 

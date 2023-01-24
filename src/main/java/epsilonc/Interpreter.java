@@ -5,14 +5,13 @@ import epsilonc.core.NativeFunction;
 import epsilonc.core.ReturnRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
-import epsilonc.type.*;
+import epsilonc.object.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static epsilonc.utils.Utils.isEqual;
-import static epsilonc.utils.Utils.isTruthy;
+import static epsilonc.utils.Utils.*;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Void> {
 
@@ -96,11 +95,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Void visitBreakStatement(BreakStatement breakStatement) {
-        return null;
-    }
-
-    @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
         environment.define(statement.getName().text(), statement.createCallable(environment), true);
         return null;
@@ -124,6 +118,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
         EpsilonClass epsClass = new EpsilonClass(statement.getName().text(), methods, functions, fields);
         environment.assign(statement.getName(), epsClass);
+        return null;
+    }
+
+    @Override
+    public Void visitTypeStatement(TypeStatement statement) {
+        environment.define(statement.getName().text(), null, true);
+        Map<String, Let> properties = new HashMap<>();
+        statement.getProperties().forEach(ps ->
+                properties.put(ps.getName().text(), new Let(null, ps.isMutable())));
+        Type tp = new Type(statement.getName().text(), properties);
+        environment.assign(statement.getName(), tp);
         return null;
     }
 
@@ -318,7 +323,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return object.toString();
     }
 
-    void resolve(Expression expr, int depth) {
+    public void resolve(Expression expr, int depth) {
         locals.put(expr, depth);
     }
 

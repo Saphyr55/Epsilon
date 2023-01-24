@@ -76,7 +76,9 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        resolve(expression.getStatement());
+        declare(expression.getStatement().getName());
+        define(expression.getStatement().getName());
+        resolveFunction(expression.getStatement(), FunctionType.Anonymous);
         return null;
     }
 
@@ -142,11 +144,6 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     }
 
     @Override
-    public Void visitBreakStatement(BreakStatement statement) {
-        return null;
-    }
-
-    @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
         declare(statement.getName());
         define(statement.getName());
@@ -163,6 +160,15 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         resolve(statement.getMethods());
         return null;
     }
+
+    @Override
+    public Void visitTypeStatement(TypeStatement statement) {
+        declare(statement.getName());
+        define(statement.getName());
+        resolve(statement.getProperties());
+        return null;
+    }
+
 
     void resolve(List<? extends Statement> statements) {
         statements.forEach(this::resolve);

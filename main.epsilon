@@ -1,19 +1,4 @@
-class Optional  {
-
-    let mut content;
-
-    method ifPresent(fn) {
-        fn(null);
-    }
-
+type Cat = {
+    mut name;
+    meow;
 }
-
-let optional = Optional();
-optional.content = 100;
-
-optional.ifPresent(func (content) {
-   println(content);
-});
-
-
-

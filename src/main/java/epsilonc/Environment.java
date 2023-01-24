@@ -3,7 +3,7 @@ package epsilonc;
 import epsilonc.core.AssignException;
 import epsilonc.core.DeclarationException;
 import epsilonc.core.InterpretRuntimeException;
-import epsilonc.type.Let;
+import epsilonc.object.Let;
 
 import java.util.HashMap;
 import java.util.Map;

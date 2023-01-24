@@ -2,7 +2,7 @@ package epsilonc.statement;
 
 import epsilonc.Environment;
 import epsilonc.Token;
-import epsilonc.type.Func;
+import epsilonc.object.Func;
 
 import java.util.List;
 

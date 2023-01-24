@@ -2,5 +2,5 @@ package epsilonc.core;
 
 public enum FunctionType {
 
-    None, Function, Method
+    None, Function, Anonymous, Method
 }

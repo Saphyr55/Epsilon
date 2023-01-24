@@ -1,4 +1,4 @@
-package epsilonc.type;
+package epsilonc.object;
 
 import epsilonc.Token;
 import epsilonc.core.InterpretRuntimeException;
@@ -16,9 +16,14 @@ public class Instance {
     }
 
     public void set(Token name, Object value) {
+
         Let let = eClass.findFields(name.text());
+        if (let == null)
+            throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");
+
         if (!let.isMutable() && let.getValue() != null)
             throw new InterpretRuntimeException(name, "'"+name.text()+"' isn't mutable.");
+
         let.setValue(value);
     }
 

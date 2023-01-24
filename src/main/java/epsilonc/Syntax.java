@@ -6,35 +6,36 @@ import epsilonc.core.Matching;
 public final class Syntax {
 
     public final static class Word {
-        @Bind(kind = Kind.True)
+
+        @Bind(kind = Kind.TypeKw)
+        public static final String Type = "type";
+        @Bind(kind = Kind.TrueKw)
         public static final String True = "true";
-        @Bind(kind = Kind.False)
+        @Bind(kind = Kind.FalseKw)
         public static final String False = "false";
-        @Bind(kind = Kind.LetSymbol)
+        @Bind(kind = Kind.LetKw)
         public static final String Let = "let";
-        @Bind(kind = Kind.MutSymbol)
+        @Bind(kind = Kind.MutKw)
         public static final String Mut = "mut";
-        @Bind(kind = Kind.FuncSymbol)
+        @Bind(kind = Kind.FuncKw)
         public static final String Func = "func";
-        @Bind(kind = Kind.ReturnSymbol)
+        @Bind(kind = Kind.ReturnKw)
         public static final String Return = "return";
-        @Bind(kind = Kind.ClassSymbol)
+        @Bind(kind = Kind.ClassKw)
         public static final String Class = "class";
-        @Bind(kind = Kind.ElseSymbol)
+        @Bind(kind = Kind.ElseKw)
         public static final String Else = "else";
-        @Bind(kind = Kind.IfSymbol)
+        @Bind(kind = Kind.IfKw)
         public static final String If = "if";
-        @Bind(kind = Kind.NullSymbol)
+        @Bind(kind = Kind.NullKw)
         public static final String Null = "null";
-        @Bind(kind = Kind.ForSymbol)
+        @Bind(kind = Kind.ForKw)
         public static final String For = "for";
-        @Bind(kind = Kind.ThisSymbol)
+        @Bind(kind = Kind.ThisKw)
         public static final String This = "this";
-        @Bind(kind = Kind.WhileSymbol)
+        @Bind(kind = Kind.WhileKw)
         public static final String While = "while";
-        @Bind(kind = Kind.BreakSymbol)
-        public static final String Break = "break";
-        @Bind(kind = Kind.NamespaceSymbol)
+        @Bind(kind = Kind.NamespaceKw)
         public static final String Namespace = "namespace";
     }
 

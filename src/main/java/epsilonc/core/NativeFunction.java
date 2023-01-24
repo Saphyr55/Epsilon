@@ -1,7 +1,6 @@
 package epsilonc.core;
 
-import epsilonc.type.Func;
-import epsilonc.type.FuncNative;
+import epsilonc.object.FuncNative;
 import epsilonc.Environment;
 import epsilonc.Interpreter;
 
