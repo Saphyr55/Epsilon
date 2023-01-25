@@ -113,16 +113,20 @@ public class Parser {
     }
 
     private Statement createLetDeclaration() {
-
         boolean mutable = match(Kind.MutKw);
         Token name = consume(Kind.Identifier, "Expect a name before let assignment.");
         Token type = null;
         Expression initializer = null;
         if (match(Kind.Colon)) {
-            consume(Kind.Identifier, "Expected declaring type after ':'");
+            consume(Kind.Identifier, "Expected declaring type after ':'.");
             type = previous();
         }
         if (match(Kind.Assign)) initializer = expression();
+        if (initializer instanceof BlockExpression be) {
+            if (type == null)
+                throw report(name, "Expected explicit type before initialize it.");
+            be.setType(type);
+        }
         consume(Kind.Semicolon, "Expect ';' after let declaration.");
         return new LetStatement(name, type, initializer, mutable);
     }
@@ -207,6 +211,20 @@ public class Parser {
         List<Statement> statements = new ArrayList<>();
         while (!check(Kind.CloseBracket) && !isAtEnd()) {
             statements.add(createDeclaration());
+        }
+        consume(Kind.CloseBracket,  "Expect '}' after block.");
+        return statements;
+    }
+
+    private List<Statement> createTypeInitializer() {
+        List<Statement> statements = new ArrayList<>();
+        while (!check(Kind.CloseBracket) && !isAtEnd()) {
+            consume(Kind.Identifier, "Expected a name");
+            Token name = previous();
+            consume(Kind.Assign, "Expected '=' to assign a value");
+            Expression value = expression();
+            consume(Kind.Semicolon, "Expect ';' after a declaration.");
+            statements.add(new InitStatement(name, value));
         }
         consume(Kind.CloseBracket,  "Expect '}' after block.");
         return statements;
@@ -361,7 +379,7 @@ public class Parser {
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
         if (match(Kind.FuncKw)) return new AnonymousFuncExpression(createAnonymousFunction());
-        if (match(Kind.OpenBracket)) return new BlockExpression(createBlock());
+        if (match(Kind.OpenBracket)) return new BlockExpression(createTypeInitializer());
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");

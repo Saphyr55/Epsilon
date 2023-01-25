@@ -63,7 +63,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Object value = null;
         if (statement.getInitializer() != null)
             value = evaluate(statement.getInitializer());
-
         environment.define(statement.getName().text(), value, statement.isMutable());
         return null;
     }
@@ -123,12 +122,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Void visitTypeStatement(TypeStatement statement) {
-        environment.define(statement.getName().text(), null, true);
         Map<String, Let> properties = new HashMap<>();
         statement.getProperties().forEach(ps ->
                 properties.put(ps.getName().text(), new Let(null, ps.isMutable())));
         Type tp = new Type(statement.getName().text(), properties);
-        environment.assign(statement.getName(), tp);
+        environment.define(statement.getName().text(), tp, false);
         return null;
     }
 
@@ -232,7 +230,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Integer distance = locals.get(expression);
         if (distance != null) environment.assignAt(distance, expression.getName(), value);
         else globals.assign(expression.getName(), value);
-
         return value;
     }
 
@@ -277,8 +274,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitGetterExpression(GetterExpression expression) {
         Object object = evaluate(expression.getObjet());
-        if (object instanceof InstanceClass instanceClass) {
-            return instanceClass.get(expression.getName());
+        if (object instanceof Instance instance) {
+            return instance.get(expression.getName());
         }
         throw new InterpretRuntimeException(expression.getName(), "Only instances have properties.");
     }
@@ -286,7 +283,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitSetterExpression(SetterExpression expression) {
         Object object = evaluate(expression.getObject());
-        if (object instanceof InstanceClass instanceClass) {
+        if (object instanceof Instance instanceClass) {
             Object value = evaluate(expression.getValue());
             instanceClass.set(expression.getName(), value);
             return value;
@@ -295,8 +292,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Object visitBlockExpression(BlockExpression blockExpression) {
-        return new InstanceType(new Type(null, new HashMap<>()));
+    public Object visitBlockExpression(BlockExpression expression) {
+        Map<String, Object> attributions = new HashMap<>();
+        expression.getStatements().forEach(s -> {
+            if (s instanceof InitStatement is)
+                attributions.put(is.getName().text(), evaluate(is.getValue()));
+        });
+        Object oType = environment.get(expression.getType());
+        if (oType instanceof Type type) {
+            check(expression.getType(), type, attributions);
+            return new InstanceType(type, attributions);
+        }
+        throw new InterpretRuntimeException(expression.getType(),
+                "Not recognize the type '"+expression.getType().text()+"'.");
     }
 
     public Object evaluate(Expression expression) {
@@ -353,4 +361,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Environment getEnvironment() {
         return environment;
     }
+
+    private static void check(Token name, Type type, Map<String, Object> attributions) {
+        for (Map.Entry<String, Object> stringObjectEntry : attributions.entrySet()) {
+            if (!type.getProperties().containsKey(stringObjectEntry.getKey())) {
+                throw new InterpretRuntimeException(name,
+                        "'"+name.text()+"' not correspond at '" + type.getName()+"'.");
+            }
+        }
+    }
+
+
 }

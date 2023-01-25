@@ -3,12 +3,20 @@ package epsilonc.object;
 import epsilonc.Token;
 import epsilonc.core.InterpretRuntimeException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class InstanceClass implements Instance {
 
     private final EpsilonClass eClass;
+    private final Map<String, Let> properties;
+    private final Map<String, Func> methods;
 
     public InstanceClass(EpsilonClass eClass) {
         this.eClass = eClass;
+        this.properties = new HashMap<>();
+        eClass.getFields().forEach((s, let) -> properties.put(s, new Let(let.getValue(), let.isMutable())));
+        this.methods = new HashMap<>(eClass.getMethods());
     }
 
     public EpsilonClass getEClass() {
@@ -17,7 +25,7 @@ public class InstanceClass implements Instance {
 
     public void set(Token name, Object value) {
 
-        Let let = eClass.findFields(name.text());
+        Let let = properties.get(name.text());
         if (let == null)
             throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");
 
@@ -29,10 +37,10 @@ public class InstanceClass implements Instance {
 
     public Object get(Token name) {
 
-        Let field = eClass.findFields(name.text());
+        Let field = properties.get(name.text());
         if (field != null) return field.getValue();
 
-        Func method = eClass.findMethod(name.text());
+        Func method = methods.get(name.text());
         if (method != null) return method;
 
         throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");

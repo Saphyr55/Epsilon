@@ -1,10 +1,26 @@
-
 type Window = {
     mut height: i32;
     mut width: i32;
     mut title: String;
 }
 
-let mut window: Window = {
-
+let window: Window = {
+    height = 100;
+    width = 200;
+    title = "Title";
 };
+
+let window2: Window = {
+    height = 300;
+    width = 400;
+    title = "Second Title";
+};
+
+println(window.title);
+
+window.title = "First Title";
+
+println(window.title);
+
+println(window2.title);
+

@@ -1,13 +1,14 @@
 package epsilonc.expression;
 
+import epsilonc.Token;
 import epsilonc.statement.Statement;
-import epsilonc.statement.StatementVisitor;
 
 import java.util.List;
 
 public class BlockExpression implements Expression{
 
-    private List<Statement> statements;
+    private final List<Statement> statements;
+    private Token type;
 
     public BlockExpression(List<Statement> statements) {
         this.statements = statements;
@@ -20,5 +21,13 @@ public class BlockExpression implements Expression{
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) {
         return visitor.visitBlockExpression(this);
+    }
+
+    public Token getType() {
+        return type;
+    }
+
+    public void setType(Token type) {
+        this.type = type;
     }
 }

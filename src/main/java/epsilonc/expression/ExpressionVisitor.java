@@ -13,6 +13,5 @@ public interface ExpressionVisitor<R>  {
     R visitAnonymousFuncExpression(AnonymousFuncExpression expression);
     R visitGetterExpression(GetterExpression getterExpression);
     R visitSetterExpression(SetterExpression setterExpression);
-
     R visitBlockExpression(BlockExpression blockExpression);
 }

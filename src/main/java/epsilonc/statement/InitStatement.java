@@ -5,12 +5,10 @@ import epsilonc.expression.Expression;
 
 public class InitStatement implements Statement {
 
-    private Expression parent;
     private Token name;
     private Expression value;
 
-    public InitStatement(Expression parent, Token name, Expression value) {
-        this.parent = parent;
+    public InitStatement(Token name, Expression value) {
         this.name = name;
         this.value = value;
     }
@@ -21,10 +19,6 @@ public class InitStatement implements Statement {
 
     public Token getName() {
         return name;
-    }
-
-    public Expression getParent() {
-        return parent;
     }
 
     @Override
