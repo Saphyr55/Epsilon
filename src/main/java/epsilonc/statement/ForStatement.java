@@ -1,6 +1,5 @@
 package epsilonc.statement;
 
-import epsilonc.Parser;
 import epsilonc.expression.Expression;
 
 @Deprecated

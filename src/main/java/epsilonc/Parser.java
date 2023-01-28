@@ -1,8 +1,13 @@
 package epsilonc;
 
+import epsilonc.core.NativeType;
 import epsilonc.core.ParseException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
+import epsilonc.syntax.Kind;
+import epsilonc.syntax.Lexer;
+import epsilonc.syntax.Syntax;
+import epsilonc.syntax.Token;
 
 import java.util.*;
 
@@ -44,14 +49,14 @@ public class Parser {
     }
 
     private Statement createTypeDeclaration() {
-        Token name = consume(Kind.Identifier, "Expected a name for declaring type.");
-        consume(Kind.Assign, "Expected a '=' after naming type.");
-        consume(Kind.OpenBracket, "Expected open bracket before declaring type body.");
+        Token name = consume(Kind.Identifier, "Expect a name for declaring type.");
+        consume(Kind.Assign, "Expect '=' to assign the type to the name");
+        consume(Kind.OpenBracket, "Expect to open bracket before declaring type body.");
         List<LetStatement> properties = new ArrayList<>();
         while (!check(Kind.CloseBracket) && !isAtEnd())  {
             properties.add(createPropertyDeclaration());
         }
-        consume(Kind.CloseBracket, "Expected close bracket after declaring type body.");
+        consume(Kind.CloseBracket, "Expect to close bracket after declaring type body.");
         return new TypeStatement(name, properties);
     }
 
@@ -80,51 +85,52 @@ public class Parser {
     }
 
     private FunctionStatement createFunction() {
-        return (FunctionStatement) createFunction(false);
+        return createFunction(false);
     }
 
     private FunctionStatement createAnonymousFunction() {
-        return (FunctionStatement) createFunction(true);
+        return createFunction(true);
     }
 
-    private Statement createFunction(boolean isAnonymous) {
+    private FunctionStatement createFunction(boolean isAnonymous) {
 
         Token name = null;
-        if (!isAnonymous)
-            name = consume(Kind.Identifier, "Expected a function name.");
-
+        Map<Token, Token> parameters = new HashMap<>();
+        Token returnType = null;
+        if (!isAnonymous) name = consume(Kind.Identifier, "Expected a function name.");
         consume(Kind.OpenParenthesis, "Expect '(' after function name.");
-        List<Token> parameters = new ArrayList<>();
         if (!check(Kind.CloseParenthesis)) {
             do {
                 if (parameters.size() >= 255)
                     throw report(peek(), "Can't have more than 255 parameters.");
-
-                parameters.add(consume(Kind.Identifier, "Expect parameter name."));
+                Token id = consume(Kind.Identifier, "Expect parameter name.");
+                consume(Kind.Colon, "Expect ':' to precise the type.");
+                Token type = consume(Kind.Identifier, "Expect a type for '" + id.text() + "'.");
+                parameters.put(id, type);
             } while (match(Kind.CommaSymbol));
         }
 
         consume(Kind.CloseParenthesis, "Expect ')' after parameters.");
+
+        if (match(Kind.Arrow))
+            returnType = consume(Kind.Identifier, "Expected a return type after '->'.");
+
         consume(Kind.OpenBracket, "Expect '{' before function body.");
 
         List<Statement> body = createBlock();
 
-        return new FunctionStatement(name, parameters, body);
+        return new FunctionStatement(name, parameters, body, returnType);
     }
 
     private Statement createLetDeclaration() {
         boolean mutable = match(Kind.MutKw);
         Token name = consume(Kind.Identifier, "Expect a name before let assignment.");
-        Token type = null;
         Expression initializer = null;
-        if (match(Kind.Colon)) {
-            consume(Kind.Identifier, "Expected declaring type after ':'.");
-            type = previous();
-        }
+        consume(Kind.Colon, "Expect ':' for declaring type");
+        Token type = consume(Kind.Identifier, "Expected declaring type after ':'.");
         if (match(Kind.Assign)) initializer = expression();
-        if (initializer instanceof BlockExpression be) {
-            if (type == null)
-                throw report(name, "Expected explicit type before initialize it.");
+        if (initializer instanceof InitTypeExpression be) {
+            if (type == null) throw report(name, "Expected explicit type before initialize it.");
             be.setType(type);
         }
         consume(Kind.Semicolon, "Expect ';' after let declaration.");
@@ -256,6 +262,7 @@ public class Parser {
                 return new AssignExpression(le.getName(), value);
             else if (expression instanceof GetterExpression ge)
                 return new SetterExpression(ge.getObjet(), ge.getName(), value);
+
             throw report(equals, "Invalid assignment target.");
         }
 
@@ -379,7 +386,7 @@ public class Parser {
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
         if (match(Kind.Identifier)) return new LetExpression(previous());
         if (match(Kind.FuncKw)) return new AnonymousFuncExpression(createAnonymousFunction());
-        if (match(Kind.OpenBracket)) return new BlockExpression(createTypeInitializer());
+        if (match(Kind.OpenBracket)) return new InitTypeExpression(createTypeInitializer());
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");
@@ -413,9 +420,8 @@ public class Parser {
     }
 
     public static String diagnostic(Token t, String msg) {
-        if (t.kind() == Kind.EndToken)
-            return "Error" + ": " + msg + " at end";
-        return "Error" + ": '" + t.text() + "' | " + msg + " at "+ "[" + t.line() + ","+ t.col() + "]";
+        if (t.kind() == Kind.EndToken) return "Error" + ": " + msg + " at end";
+        return "Error" + ": " + " To the "+ "line " + ( t.line() + 1 ) + " for '" + t.text() + "' | " + msg;
     }
 
     public boolean match(Kind... kinds) {

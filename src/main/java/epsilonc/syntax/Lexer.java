@@ -1,4 +1,4 @@
-package epsilonc;
+package epsilonc.syntax;
 
 import epsilonc.core.BindingManager;
 import epsilonc.utils.Utils;
@@ -6,7 +6,7 @@ import epsilonc.utils.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static epsilonc.Syntax.Symbol;
+import static epsilonc.syntax.Syntax.Symbol;
 
 public class Lexer {
 
@@ -54,7 +54,7 @@ public class Lexer {
             case Symbol.Dot -> addToken(Kind.Dot);
             case Symbol.Colon -> addToken(Kind.Colon);
             case Symbol.Semicolon -> addToken(Kind.Semicolon);
-            case Symbol.MinusOp -> addToken(match(Symbol.Greater) ? Kind.ArrowSymbol : Kind.Minus);
+            case Symbol.MinusOp -> addToken(match(Symbol.Greater) ? Kind.Arrow : Kind.Minus);
             case Symbol.PlusOp -> addToken(Kind.Plus);
             case Symbol.StartOp -> addToken(Kind.Star);
             case Symbol.SlashOp -> addSlashToken();
@@ -101,7 +101,8 @@ public class Lexer {
 
     private void addSlashToken() {
         if (match(Symbol.SlashOp)) {
-            while (peek() != '\n' && !isAtEnd()) next();
+            while (peek() != '\n' && !isAtEnd())
+                next();
         } else
             addToken(Kind.Slash);
     }
@@ -138,7 +139,7 @@ public class Lexer {
     }
 
     private void report(String message) {
-        System.err.println("Error" + ": " + message + " at "+ "[" + line + ","+ col+ "]");
+        System.err.println("Error" + ": " + message + " at " + "[" + ( line + 1 ) + "," + ( col + 1 ) + "].");
         hadError = true;
     }
 

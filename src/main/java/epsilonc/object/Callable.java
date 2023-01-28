@@ -1,6 +1,6 @@
 package epsilonc.object;
 
-import epsilonc.Interpreter;
+import epsilonc.resolver.Interpreter;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
 package epsilonc.object;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 
 public interface Instance {
 

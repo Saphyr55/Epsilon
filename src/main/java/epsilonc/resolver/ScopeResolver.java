@@ -1,22 +1,25 @@
-package epsilonc;
+package epsilonc.resolver;
 
+import epsilonc.core.NativeType;
+import epsilonc.syntax.Token;
 import epsilonc.core.FunctionType;
 import epsilonc.core.ResolverRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void> {
+public class ScopeResolver implements Resolver<Void, Void> {
+
+    public record Scope(String type, boolean isDefine) {}
 
     private FunctionType currentFunction = FunctionType.None;
     private final Interpreter interpreter;
-    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private final Stack<Map<String, Scope>> scopes = new Stack<>();
 
-    Resolver(Interpreter interpreter) {
+    public ScopeResolver(Interpreter interpreter) {
         this.interpreter = interpreter;
     }
 
@@ -46,7 +49,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitLetExpression(LetExpression expression) {
-        if (!scopes.isEmpty() && scopes.peek().get(expression.getName().text()) == Boolean.FALSE) {
+        if (!scopes.isEmpty() && !scopes.peek().get(expression.getName().text()).isDefine) {
             throw new ResolverRuntimeException(expression.getName(), "Can't read local variable in its own initializer.");
         }
         resolveLocal(expression, expression.getName());
@@ -76,8 +79,8 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        declare(expression.getStatement().getName());
-        define(expression.getStatement().getName());
+        declare(expression.getStatement().getName(), NativeType.Func);
+        define(expression.getStatement().getName(), NativeType.Func);
         resolveFunction(expression.getStatement(), FunctionType.Anonymous);
         return null;
     }
@@ -96,7 +99,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     }
 
     @Override
-    public Void visitBlockExpression(BlockExpression expression) {
+    public Void visitBlockExpression(InitTypeExpression expression) {
         beginScope();
         resolve(expression.getStatements());
         endScope();
@@ -121,10 +124,10 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitLetStatement(LetStatement statement) {
-        declare(statement.getName());
+        declare(statement.getName(), statement.getType().text());
         if (statement.getInitializer() != null)
             resolve(statement.getInitializer());
-        define(statement.getName());
+        define(statement.getName(), statement.getType().text());
         return null;
     }
 
@@ -153,16 +156,16 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-        declare(statement.getName());
-        define(statement.getName());
+        declare(statement.getName(), NativeType.Func);
+        define(statement.getName(), NativeType.Func);
         resolveFunction(statement, FunctionType.Function);
         return null;
     }
 
     @Override
     public Void visitClassStatement(ClassStatement statement) {
-        declare(statement.getName());
-        define(statement.getName());
+        declare(statement.getName(), statement.getName().text());
+        define(statement.getName(), statement.getName().text());
         resolve(statement.getFields());
         resolve(statement.getStaticFunctions());
         resolve(statement.getMethods());
@@ -171,8 +174,8 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitTypeStatement(TypeStatement statement) {
-        declare(statement.getName());
-        define(statement.getName());
+        declare(statement.getName(), statement.getName().text());
+        define(statement.getName(), statement.getName().text());
         resolve(statement.getProperties());
         return null;
     }
@@ -183,10 +186,6 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
-    void resolve(List<? extends Statement> statements) {
-        statements.forEach(this::resolve);
-    }
-
     private void beginScope() {
         scopes.push(new HashMap<>());
     }
@@ -195,26 +194,17 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         scopes.pop();
     }
 
-    private void resolve(Statement statement) {
-        statement.accept(this);
-    }
-
-    private void resolve(Expression expression) {
-        expression.accept(this);
-    }
-
-    private void declare(Token name) {
+    private void declare(Token name, String type) {
         if (scopes.isEmpty()) return;
-        Map<String, Boolean> scope = scopes.peek();
-        if (scope.containsKey(name.text())) {
+        Map<String, Scope> scope = scopes.peek();
+        if (scope.containsKey(name.text()))
             throw new ResolverRuntimeException(name, "Already a variable with this name in this scope.");
-        }
-        scope.put(name.text(), false);
+        scope.put(name.text(), new Scope(type, false));
     }
 
-    private void define(Token name) {
+    private void define(Token name, String type) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.text(), true);
+        scopes.peek().put(name.text(), new Scope(type, true));
     }
 
     private void resolveLocal(Expression expression, Token name) {
@@ -230,9 +220,9 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
         beginScope();
-        for (Token param : statement.getParams()) {
-            declare(param);
-            define(param);
+        for (var param : statement.getParams().entrySet()) {
+            declare(param.getKey(), param.getValue().text());
+            define(param.getKey(), param.getValue().text());
         }
         resolve(statement.getBody());
         endScope();

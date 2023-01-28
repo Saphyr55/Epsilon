@@ -1,6 +1,6 @@
 package epsilonc.object;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 import epsilonc.core.InterpretRuntimeException;
 
 import java.util.HashMap;
@@ -15,7 +15,7 @@ public class InstanceClass implements Instance {
     public InstanceClass(EpsilonClass eClass) {
         this.eClass = eClass;
         this.properties = new HashMap<>();
-        eClass.getFields().forEach((s, let) -> properties.put(s, new Let(let.getValue(), let.isMutable())));
+        eClass.getFields().forEach((s, let) -> properties.put(s, new Let(let.getValue(), let.getType(), let.isMutable())));
         this.methods = new HashMap<>(eClass.getMethods());
     }
 

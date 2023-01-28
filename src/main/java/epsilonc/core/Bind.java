@@ -1,6 +1,6 @@
 package epsilonc.core;
 
-import epsilonc.Kind;
+import epsilonc.syntax.Kind;
 
 import java.lang.annotation.*;
 

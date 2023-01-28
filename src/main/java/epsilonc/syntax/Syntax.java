@@ -1,7 +1,7 @@
-package epsilonc;
+package epsilonc.syntax;
 
 import epsilonc.core.Bind;
-import epsilonc.core.Matching;
+import epsilonc.core.Match;
 
 public final class Syntax {
 
@@ -65,7 +65,7 @@ public final class Syntax {
         public static final String CloseBrackets = "}";
         public static final String Colon = ":";
         @Bind(kind = Kind.Assign)
-        @Matching(match = "=", kind = Kind.Equal)
+        @Match(match = "=", kind = Kind.Equal)
         public static final String Equal = "=";
         public static final String Semicolon = ";";
         public static final String Comma = ",";

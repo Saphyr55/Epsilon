@@ -1,6 +1,6 @@
 package epsilonc.expression;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 
 public class SetterExpression implements Expression {
 

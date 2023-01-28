@@ -3,11 +3,13 @@ package epsilonc.object;
 public class Let {
 
     private Object value;
+    private String type;
     private final boolean isMutable;
 
-    public Let(Object value, boolean isMutable) {
+    public Let(Object value, String type, boolean isMutable) {
         this.value = value;
         this.isMutable = isMutable;
+        this.type = type;
     }
 
     public Object getValue() {
@@ -20,6 +22,10 @@ public class Let {
 
     public boolean isMutable() {
         return isMutable;
+    }
+
+    public String getType() {
+        return type;
     }
 
     @Override

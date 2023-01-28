@@ -1,16 +1,16 @@
 package epsilonc.expression;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 import epsilonc.statement.Statement;
 
 import java.util.List;
 
-public class BlockExpression implements Expression{
+public class InitTypeExpression implements Expression{
 
     private final List<Statement> statements;
     private Token type;
 
-    public BlockExpression(List<Statement> statements) {
+    public InitTypeExpression(List<Statement> statements) {
         this.statements = statements;
     }
 

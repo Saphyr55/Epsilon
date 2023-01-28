@@ -2,18 +2,20 @@ package epsilonc.core;
 
 import epsilonc.object.FuncNative;
 import epsilonc.Environment;
-import epsilonc.Interpreter;
+import epsilonc.resolver.Interpreter;
 
-public interface NativeFunction {
+public final class NativeFunction {
 
-    static void defineAll(Interpreter interpreter) {
+
+    public static void defineAll(Interpreter interpreter) {
         Environment globals = interpreter.getGlobals();
-        globals.define("clock", new FuncNative(0, (i, args) -> (double) System.currentTimeMillis() / 1000.0));
-        globals.define("println", new FuncNative(1, (i, args) -> {
+        globals.define("clock", NativeType.Func, new FuncNative(0,
+                (i, args) -> (double) System.currentTimeMillis() / 1000.0));
+        globals.define("println", NativeType.Func, new FuncNative(1, (i, args) -> {
             System.out.println(i.stringify(args.get(0)));
             return null;
         }));
-        globals.define("print", new FuncNative(1, (i, args) -> {
+        globals.define("print", NativeType.Func, new FuncNative(1, (i, args) -> {
             System.out.print(i.stringify(args.get(0)));
             return null;
         }));

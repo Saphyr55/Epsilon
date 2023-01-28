@@ -1,0 +1,30 @@
+type String = { }
+type i32 = { }
+
+type Window = {
+    mut title: String;
+    mut width: i32;
+    mut height: i32;
+}
+
+let create_window: function = func () -> Window {
+       let window: Window = {
+           height = 100;
+           title = "By let";
+           width = 200;
+       };
+       return window;
+};
+
+let window: Window = create_window();
+
+let window2: Window = {
+    height = 300;
+    width = 400;
+    title = "Second Title";
+};
+
+println(window.title);
+window.title = "First Title";
+println(window.title);
+println(window2.title);

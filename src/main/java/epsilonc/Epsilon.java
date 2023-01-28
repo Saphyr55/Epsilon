@@ -1,5 +1,8 @@
 package epsilonc;
 
+import epsilonc.resolver.Interpreter;
+import epsilonc.resolver.ScopeResolver;
+import epsilonc.resolver.TypeResolver;
 import epsilonc.statement.Statement;
 
 import java.io.IOException;
@@ -12,10 +15,12 @@ public class Epsilon {
 
     public static void main(String[] args) throws IOException {
         Interpreter interpreter = new Interpreter();
-        Parser parser = Parser.createParser(Files.readString(Path.of("main.epsilon"), StandardCharsets.UTF_8));
+        Parser parser = Parser.createParser(Files.readString(Path.of("epsilon/main.epsl"), StandardCharsets.UTF_8));
         List<Statement> statements = parser.parse();
-        Resolver resolver = new Resolver(interpreter);
-        resolver.resolve(statements);
+        ScopeResolver scopeResolver = new ScopeResolver(interpreter);
+        scopeResolver.resolve(statements);
+        TypeResolver typeResolver = new TypeResolver(scopeResolver, interpreter);
+        typeResolver.resolve(statements);
         interpreter.interpret(statements);
     }
 

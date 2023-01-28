@@ -1,6 +1,6 @@
 package epsilonc.core;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 
 public class AssignException extends InterpretRuntimeException {
 

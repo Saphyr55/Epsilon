@@ -1,7 +1,7 @@
 package epsilonc.object;
 
 import epsilonc.Environment;
-import epsilonc.Interpreter;
+import epsilonc.resolver.Interpreter;
 import epsilonc.core.ReturnRuntimeException;
 import epsilonc.statement.FunctionStatement;
 
@@ -11,17 +11,23 @@ public class Func implements Callable {
 
     private final FunctionStatement declaration;
     private final Environment closure;
+    private final TypeDeclaration returnTypeDeclaration;
 
-    public Func(Environment closure, FunctionStatement declaration) {
+    public Func(Environment closure, FunctionStatement declaration, TypeDeclaration returnTypeDeclaration) {
         this.closure = closure;
         this.declaration = declaration;
+        this.returnTypeDeclaration = returnTypeDeclaration;
     }
 
     @Override
     public Object call(Interpreter inter, List<Object> args) {
         Environment environment = new Environment(closure);
         for (int i = 0; i < declaration.getParams().size(); i++) {
-            environment.define(declaration.getParams().get(i).text(), args.get(i));
+            environment.define(
+                    declaration.getParams().get(i).text(),
+                    null,
+                    args.get(i)
+            );
         }
         try {
             inter.executeBlock(declaration.getBody(), environment);
@@ -44,4 +50,9 @@ public class Func implements Callable {
     public Environment getClosure() {
         return closure;
     }
+
+    public TypeDeclaration getReturnType() {
+        return returnTypeDeclaration;
+    }
+
 }

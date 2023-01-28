@@ -1,4 +1,4 @@
-package epsilonc.expression;
+package epsilonc.core;
 
 import epsilonc.core.InterpretRuntimeException;
 

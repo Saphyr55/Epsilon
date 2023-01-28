@@ -1,6 +1,6 @@
 package epsilonc.core;
 
-import epsilonc.Kind;
+import epsilonc.syntax.Kind;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,7 +9,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Matching {
+public @interface Match {
+
     String match();
     Kind kind();
+
 }

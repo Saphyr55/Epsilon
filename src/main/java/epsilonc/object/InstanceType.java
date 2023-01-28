@@ -1,6 +1,6 @@
 package epsilonc.object;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 import epsilonc.core.InterpretRuntimeException;
 import epsilonc.utils.PrettyPrintingMap;
 
@@ -9,13 +9,14 @@ import java.util.Map;
 
 public class InstanceType implements Instance {
 
-    private Type type;
+    private TypeDeclaration typeDeclaration;
     private final Map<String, Let> properties;
 
-    public InstanceType(Type type, Map<String, Object> properties) {
-        this.type = type;
+    public InstanceType(TypeDeclaration typeDeclaration, Map<String, Object> properties) {
+        this.typeDeclaration = typeDeclaration;
         this.properties = new HashMap<>();
-        type.getProperties().forEach((s, let) -> this.properties.put(s, new Let(properties.get(s), let.isMutable())));
+        typeDeclaration.getProperties().forEach((s, let) -> this.properties.put(s, new Let(
+                        properties.get(s), typeDeclaration.getName(), let.isMutable())));
     }
 
     @Override
@@ -42,18 +43,18 @@ public class InstanceType implements Instance {
         return properties;
     }
 
-    public Type getType() {
-        return type;
+    public TypeDeclaration getType() {
+        return typeDeclaration;
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public void setType(TypeDeclaration typeDeclaration) {
+        this.typeDeclaration = typeDeclaration;
     }
 
     @Override
     public String toString() {
         return super.toString()+" {\n" +
-                "\ttype=" + type.getName() +
+                "\ttype=" + typeDeclaration.getName() +
                 ",\n\tproperties={" + PrettyPrintingMap.pretty(properties) +
                 "}\n}";
     }

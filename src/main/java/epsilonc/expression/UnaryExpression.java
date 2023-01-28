@@ -1,6 +1,7 @@
 package epsilonc.expression;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
+import epsilonc.type.Type;
 
 public final class UnaryExpression implements Expression {
 
@@ -32,4 +33,5 @@ public final class UnaryExpression implements Expression {
                 ", right=" + right +
                 '}';
     }
+
 }

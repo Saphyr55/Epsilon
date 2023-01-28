@@ -1,6 +1,6 @@
 package epsilonc.expression;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 
 import java.util.List;
 

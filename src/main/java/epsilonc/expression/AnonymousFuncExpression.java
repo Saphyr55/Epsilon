@@ -1,10 +1,6 @@
 package epsilonc.expression;
 
-import epsilonc.Token;
 import epsilonc.statement.FunctionStatement;
-import epsilonc.statement.Statement;
-
-import java.util.List;
 
 public class AnonymousFuncExpression implements Expression {
 

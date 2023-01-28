@@ -1,10 +1,11 @@
 package epsilonc.expression;
 
-import epsilonc.Token;
+import epsilonc.syntax.Kind;
+import epsilonc.syntax.Token;
 
 public final class LetExpression implements Expression {
 
-    private Token name;
+    private final Token name;
 
     public LetExpression(Token name) {
         this.name = name;
@@ -18,4 +19,5 @@ public final class LetExpression implements Expression {
     public Token getName() {
         return name;
     }
+
 }

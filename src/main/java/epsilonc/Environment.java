@@ -4,6 +4,7 @@ import epsilonc.core.AssignException;
 import epsilonc.core.DeclarationException;
 import epsilonc.core.InterpretRuntimeException;
 import epsilonc.object.Let;
+import epsilonc.syntax.Token;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +33,12 @@ public class Environment {
         throw new DeclarationException(name, "Undefined variable '" + name.text() + "'.");
     }
 
-    public void define(String name, Object value, boolean isMutable) {
-        values.put(name, new Let(value, isMutable));
+    public void define(String name, String type, Object value, boolean isMutable) {
+        values.put(name, new Let(value, type, isMutable));
     }
 
-    public void define(String name, Object value) {
-        values.put(name, new Let(value, false));
+    public void define(String name, String type, Object value) {
+        values.put(name, new Let(value, type, false));
     }
 
     public void assignAt(Integer distance, Token name, Object value) {

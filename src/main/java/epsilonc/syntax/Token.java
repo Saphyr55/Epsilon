@@ -1,4 +1,4 @@
-package epsilonc;
+package epsilonc.syntax;
 
 import epsilonc.utils.Utils;
 

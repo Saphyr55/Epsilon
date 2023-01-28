@@ -1,4 +1,4 @@
-package epsilonc;
+package epsilonc.syntax;
 
 public enum Kind {
 
@@ -9,7 +9,7 @@ public enum Kind {
     Number,
     ReturnKw,
     FuncKw,
-    ArrowSymbol,
+    Arrow,
     LetKw,
     Assign,
     CloseBracket,

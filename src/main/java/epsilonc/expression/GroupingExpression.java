@@ -8,7 +8,6 @@ public final class GroupingExpression implements Expression {
         this.expression = expression;
     }
 
-
     public Expression getExpression() {
         return expression;
     }

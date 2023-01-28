@@ -4,12 +4,12 @@ import epsilonc.utils.PrettyPrintingMap;
 
 import java.util.Map;
 
-public class Type {
+public class TypeDeclaration {
 
     private final String name;
     private final Map<String, Let> properties;
 
-    public Type(String name, Map<String, Let> properties) {
+    public TypeDeclaration(String name, Map<String, Let> properties) {
         this.name = name;
         this.properties = properties;
     }

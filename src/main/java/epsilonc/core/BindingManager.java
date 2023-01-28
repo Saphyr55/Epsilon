@@ -1,7 +1,7 @@
 package epsilonc.core;
 
-import epsilonc.Kind;
-import epsilonc.Syntax;
+import epsilonc.syntax.Kind;
+import epsilonc.syntax.Syntax;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

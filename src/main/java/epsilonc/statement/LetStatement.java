@@ -1,6 +1,6 @@
 package epsilonc.statement;
 
-import epsilonc.Token;
+import epsilonc.syntax.Token;
 import epsilonc.expression.Expression;
 
 public class LetStatement implements Statement {

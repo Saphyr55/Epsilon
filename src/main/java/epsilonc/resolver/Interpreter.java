@@ -1,11 +1,13 @@
-package epsilonc;
+package epsilonc.resolver;
 
-import epsilonc.core.InterpretRuntimeException;
-import epsilonc.core.NativeFunction;
-import epsilonc.core.ReturnRuntimeException;
+import epsilonc.Environment;
+import epsilonc.core.*;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
 import epsilonc.object.*;
+import epsilonc.syntax.Kind;
+import epsilonc.syntax.Syntax;
+import epsilonc.syntax.Token;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +65,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Object value = null;
         if (statement.getInitializer() != null)
             value = evaluate(statement.getInitializer());
-        environment.define(statement.getName().text(), value, statement.isMutable());
+        environment.define(statement.getName().text(), statement.getType().text(), value, statement.isMutable());
         return null;
     }
 
@@ -85,9 +87,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Void visitWhileStatement(WhileStatement statement) {
-        while (isTruthy(evaluate(statement.getCondition())))
-        {
-
+        while (isTruthy(evaluate(statement.getCondition()))) {
             execute(statement.getBody());
         }
         return null;
@@ -95,28 +95,36 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-        environment.define(statement.getName().text(), statement.createCallable(environment), true);
-        return null;
+        Object o = environment.get(statement.getReturnType());
+        if (o instanceof TypeDeclaration typeDeclaration) {
+            environment.define(statement.getName().text(), NativeType.Func,
+                    statement.createCallable(environment, typeDeclaration), false);
+            return null;
+        }
+        throw new InterpretRuntimeException(statement.getName(), "Dont recognize '" + o + "' as type.");
     }
 
     @Override
     public Void visitClassStatement(ClassStatement statement) {
-        environment.define(statement.getName().text(), null, true);
 
         Map<String, Func> functions = new HashMap<>();
-        statement.getStaticFunctions().forEach(
-                s -> functions.put(s.getName().text(), s.createCallable(environment)));
+        statement.getStaticFunctions().forEach(s -> {
+            if (environment.get(s.getName()) instanceof TypeDeclaration typeDeclaration)
+                functions.put(s.getName().text(), s.createCallable(environment, typeDeclaration));
+        });
 
         Map<String, Let> fields = new HashMap<>();
         statement.getFields().forEach(s -> fields.put(s.getName().text(),
-                new Let(evaluate(s.getInitializer()), s.isMutable())));
+                new Let(evaluate(s.getInitializer()), s.getType().text(), s.isMutable())));
 
         Map<String, Func> methods = new HashMap<>();
-        statement.getMethods().forEach(
-                s -> methods.put(s.getName().text(), s.createCallable(environment)));
+        statement.getMethods().forEach(s -> {
+            if (environment.get(s.getName()) instanceof TypeDeclaration typeDeclaration)
+                methods.put(s.getName().text(), s.createCallable(environment, typeDeclaration));
+        });
 
         EpsilonClass epsClass = new EpsilonClass(statement.getName().text(), methods, functions, fields);
-        environment.assign(statement.getName(), epsClass);
+        environment.define(statement.getName().text(), statement.getName().text(), epsClass);
         return null;
     }
 
@@ -124,9 +132,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Void visitTypeStatement(TypeStatement statement) {
         Map<String, Let> properties = new HashMap<>();
         statement.getProperties().forEach(ps ->
-                properties.put(ps.getName().text(), new Let(null, ps.isMutable())));
-        Type tp = new Type(statement.getName().text(), properties);
-        environment.define(statement.getName().text(), tp, false);
+                properties.put(ps.getName().text(), new Let(null, ps.getType().text(), ps.isMutable())));
+        TypeDeclaration tp = new TypeDeclaration(statement.getName().text(), properties);
+        environment.define(statement.getName().text(), statement.getName().text(), tp, false);
         return null;
     }
 
@@ -268,7 +276,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        return expression.getStatement().createCallable(environment);
+        if (environment.get(expression.getStatement().getReturnType()) instanceof TypeDeclaration typeDeclaration)
+            return expression.getStatement().createCallable(environment, typeDeclaration);
+        throw new InterpretRuntimeException(expression.getStatement().getReturnType(), "Dont recognize '" +
+                expression.getStatement().getReturnType() + "' as type.");
     }
 
     @Override
@@ -292,16 +303,16 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Object visitBlockExpression(BlockExpression expression) {
+    public Object visitBlockExpression(InitTypeExpression expression) {
         Map<String, Object> attributions = new HashMap<>();
         expression.getStatements().forEach(s -> {
             if (s instanceof InitStatement is)
                 attributions.put(is.getName().text(), evaluate(is.getValue()));
         });
         Object oType = environment.get(expression.getType());
-        if (oType instanceof Type type) {
-            check(expression.getType(), type, attributions);
-            return new InstanceType(type, attributions);
+        if (oType instanceof TypeDeclaration typeDeclaration) {
+            check(expression.getType(), typeDeclaration, attributions);
+            return new InstanceType(typeDeclaration, attributions);
         }
         throw new InterpretRuntimeException(expression.getType(),
                 "Not recognize the type '"+expression.getType().text()+"'.");
@@ -362,11 +373,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return environment;
     }
 
-    private static void check(Token name, Type type, Map<String, Object> attributions) {
+    private static void check(Token name, TypeDeclaration typeDeclaration, Map<String, Object> attributions) {
         for (Map.Entry<String, Object> stringObjectEntry : attributions.entrySet()) {
-            if (!type.getProperties().containsKey(stringObjectEntry.getKey())) {
+            if (!typeDeclaration.getProperties().containsKey(stringObjectEntry.getKey())) {
                 throw new InterpretRuntimeException(name,
-                        "'"+name.text()+"' not correspond at '" + type.getName()+"'.");
+                        "'"+name.text()+"' not correspond at '" + typeDeclaration.getName()+"'.");
             }
         }
     }
