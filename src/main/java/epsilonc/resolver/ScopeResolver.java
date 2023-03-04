@@ -1,13 +1,11 @@
 package epsilonc.resolver;
 
-import epsilonc.core.NativeType;
 import epsilonc.syntax.Token;
 import epsilonc.core.FunctionType;
 import epsilonc.core.ResolverRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -99,10 +97,8 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitBlockExpression(InitTypeExpression initTypeExpression) {
-        beginScope();
-        resolve(initTypeExpression.getStatements());
-        endScope();
+    public Void visitInitStructExpression(InitSructExpression expression) {
+        resolve(expression.getStatements());
         return null;
     }
 
@@ -173,7 +169,7 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitTypeStatement(TypeStatement statement) {
+    public Void visitTypeStatement(StructStatement statement) {
         declare(statement.getName());
         define(statement.getName());
         resolve(statement.getProperties());

@@ -10,4 +10,5 @@ public @interface Bind {
 
     Kind kind();
 
+    String pred() default "";
 }

@@ -69,7 +69,7 @@ public class TypeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitBlockExpression(InitTypeExpression initTypeExpression) {
+    public Void visitInitStructExpression(InitSructExpression expression) {
         return null;
     }
 
@@ -114,7 +114,7 @@ public class TypeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitTypeStatement(TypeStatement typeStatement) {
+    public Void visitTypeStatement(StructStatement structStatement) {
         return null;
     }
 

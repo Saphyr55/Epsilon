@@ -9,14 +9,14 @@ import java.util.Map;
 
 public class InstanceType implements Instance {
 
-    private TypeDeclaration typeDeclaration;
+    private EpsilonStruct epsilonStruct;
     private final Map<String, Let> properties;
 
-    public InstanceType(TypeDeclaration typeDeclaration, Map<String, Object> properties) {
-        this.typeDeclaration = typeDeclaration;
+    public InstanceType(EpsilonStruct epsilonStruct, Map<String, Object> properties) {
+        this.epsilonStruct = epsilonStruct;
         this.properties = new HashMap<>();
-        typeDeclaration.getProperties().forEach((s, let) -> this.properties.put(s, new Let(
-                        properties.get(s), typeDeclaration.getName(), let.isMutable())));
+        epsilonStruct.getProperties().forEach((s, let) -> this.properties.put(s, new Let(
+                        properties.get(s), epsilonStruct.getName(), let.isMutable())));
     }
 
     @Override
@@ -43,18 +43,18 @@ public class InstanceType implements Instance {
         return properties;
     }
 
-    public TypeDeclaration getType() {
-        return typeDeclaration;
+    public EpsilonStruct getType() {
+        return epsilonStruct;
     }
 
-    public void setType(TypeDeclaration typeDeclaration) {
-        this.typeDeclaration = typeDeclaration;
+    public void setType(EpsilonStruct epsilonStruct) {
+        this.epsilonStruct = epsilonStruct;
     }
 
     @Override
     public String toString() {
         return super.toString()+" {\n" +
-                "\ttype=" + typeDeclaration.getName() +
+                "\ttype=" + epsilonStruct.getName() +
                 ",\n\tproperties={" + PrettyPrintingMap.pretty(properties) +
                 "}\n}";
     }

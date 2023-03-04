@@ -10,7 +10,7 @@ public class InstanceClass implements Instance {
 
     private final EpsilonClass eClass;
     private final Map<String, Let> properties;
-    private final Map<String, Func> methods;
+    private final Map<String, FuncCallable> methods;
 
     public InstanceClass(EpsilonClass eClass) {
         this.eClass = eClass;
@@ -40,7 +40,7 @@ public class InstanceClass implements Instance {
         Let field = properties.get(name.text());
         if (field != null) return field.getValue();
 
-        Func method = methods.get(name.text());
+        FuncCallable method = methods.get(name.text());
         if (method != null) return method;
 
         throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");

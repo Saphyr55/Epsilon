@@ -8,6 +8,7 @@ import epsilonc.object.*;
 import epsilonc.syntax.Kind;
 import epsilonc.syntax.Syntax;
 import epsilonc.syntax.Token;
+import epsilonc.type.Type;
 
 import java.util.HashMap;
 import java.util.List;
@@ -96,9 +97,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
         Object o = environment.getValue(statement.getReturnType());
-        if (o instanceof TypeDeclaration typeDeclaration) {
+        if (o instanceof Type type) {
             environment.define(statement.getName().text(), NativeType.Func,
-                    statement.createCallable(environment, typeDeclaration), false);
+                    statement.createCallable(environment, type), false);
             return null;
         }
         throw new InterpretRuntimeException(statement.getName(), "Dont recognize '" + o + "' as type.");
@@ -107,20 +108,20 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Void visitClassStatement(ClassStatement statement) {
 
-        Map<String, Func> functions = new HashMap<>();
+        Map<String, FuncCallable> functions = new HashMap<>();
         statement.getStaticFunctions().forEach(s -> {
-            if (environment.getValue(s.getName()) instanceof TypeDeclaration typeDeclaration)
-                functions.put(s.getName().text(), s.createCallable(environment, typeDeclaration));
+            if (environment.getValue(s.getName()) instanceof Type type)
+                functions.put(s.getName().text(), s.createCallable(environment, type));
         });
 
         Map<String, Let> fields = new HashMap<>();
         statement.getFields().forEach(s -> fields.put(s.getName().text(),
                 new Let(evaluate(s.getInitializer()), s.getType().text(), s.isMutable())));
 
-        Map<String, Func> methods = new HashMap<>();
+        Map<String, FuncCallable> methods = new HashMap<>();
         statement.getMethods().forEach(s -> {
-            if (environment.getValue(s.getName()) instanceof TypeDeclaration typeDeclaration)
-                methods.put(s.getName().text(), s.createCallable(environment, typeDeclaration));
+            if (environment.getValue(s.getName()) instanceof Type type)
+                methods.put(s.getName().text(), s.createCallable(environment, type));
         });
 
         EpsilonClass epsClass = new EpsilonClass(statement.getName().text(), methods, functions, fields);
@@ -129,11 +130,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Void visitTypeStatement(TypeStatement statement) {
+    public Void visitTypeStatement(StructStatement statement) {
         Map<String, Let> properties = new HashMap<>();
         statement.getProperties().forEach(ps ->
                 properties.put(ps.getName().text(), new Let(null, ps.getType().text(), ps.isMutable())));
-        TypeDeclaration tp = new TypeDeclaration(statement.getName().text(), properties);
+        EpsilonStruct tp = new EpsilonStruct(statement.getName().text(), properties);
         environment.define(statement.getName().text(), statement.getName().text(), tp, false);
         return null;
     }
@@ -270,14 +271,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             return c.call(this, arguments);
         }
 
-        throw new InterpretRuntimeException(expression.getParen(),
-                "Can only call functions and classes.");
+        throw new InterpretRuntimeException(expression.getParen(), "Can only call functions and classes.");
     }
 
     @Override
     public Object visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        if (environment.getValue(expression.getStatement().getReturnType()) instanceof TypeDeclaration typeDeclaration)
-            return expression.getStatement().createCallable(environment, typeDeclaration);
+
+        if (environment.getValue(expression.getStatement().getReturnType()) instanceof Type type)
+            return expression.getStatement().createCallable(environment, type);
+
         throw new InterpretRuntimeException(expression.getStatement().getReturnType(), "Dont recognize '" +
                 expression.getStatement().getReturnType() + "' as type.");
     }
@@ -303,16 +305,16 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
-    public Object visitBlockExpression(InitTypeExpression expression) {
+    public Object visitInitStructExpression(InitSructExpression expression) {
         Map<String, Object> attributions = new HashMap<>();
         expression.getStatements().forEach(s -> {
             if (s instanceof InitStatement is)
                 attributions.put(is.getName().text(), evaluate(is.getValue()));
         });
         Object oType = environment.getValue(expression.getType());
-        if (oType instanceof TypeDeclaration typeDeclaration) {
-            check(expression.getType(), typeDeclaration, attributions);
-            return new InstanceType(typeDeclaration, attributions);
+        if (oType instanceof EpsilonStruct epsilonStruct) {
+            check(expression.getType(), epsilonStruct, attributions);
+            return new InstanceType(epsilonStruct, attributions);
         }
         throw new InterpretRuntimeException(expression.getType(),
                 "Not recognize the type '"+expression.getType().text()+"'.");
@@ -373,14 +375,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return environment;
     }
 
-    private static void check(Token name, TypeDeclaration typeDeclaration, Map<String, Object> attributions) {
+    private static void check(Token name, EpsilonStruct epsilonStruct, Map<String, Object> attributions) {
         for (Map.Entry<String, Object> stringObjectEntry : attributions.entrySet()) {
-            if (!typeDeclaration.getProperties().containsKey(stringObjectEntry.getKey())) {
+            if (!epsilonStruct.getProperties().containsKey(stringObjectEntry.getKey())) {
                 throw new InterpretRuntimeException(name,
-                        "'"+name.text()+"' not correspond at '" + typeDeclaration.getName()+"'.");
+                        "'"+name.text()+"' not correspond at '" + epsilonStruct.getName()+"'.");
             }
         }
     }
+
 
 
 }

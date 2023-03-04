@@ -20,4 +20,10 @@ public final class LetExpression implements Expression {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return "LetExpression{" +
+                "name=" + name +
+                '}';
+    }
 }

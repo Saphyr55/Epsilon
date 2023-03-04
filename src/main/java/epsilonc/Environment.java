@@ -6,6 +6,7 @@ import epsilonc.core.InterpretRuntimeException;
 import epsilonc.object.EpsilonClass;
 import epsilonc.object.Let;
 import epsilonc.syntax.Token;
+import epsilonc.utils.PrettyPrintingMap;
 
 import java.util.HashMap;
 import java.util.Map;

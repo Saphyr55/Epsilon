@@ -5,13 +5,14 @@ import epsilonc.statement.Statement;
 
 import java.util.List;
 
-public class InitTypeExpression implements Expression{
+public class InitSructExpression implements Expression {
 
     private final List<Statement> statements;
     private Token type;
 
-    public InitTypeExpression(List<Statement> statements) {
+    public InitSructExpression(Token type, List<Statement> statements) {
         this.statements = statements;
+        this.type = type;
     }
 
     public List<Statement> getStatements() {
@@ -20,7 +21,7 @@ public class InitTypeExpression implements Expression{
 
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visitBlockExpression(this);
+        return visitor.visitInitStructExpression(this);
     }
 
     public Token getType() {

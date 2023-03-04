@@ -1,15 +1,16 @@
 package epsilonc.object;
 
+import epsilonc.type.Type;
 import epsilonc.utils.PrettyPrintingMap;
 
 import java.util.Map;
 
-public class TypeDeclaration {
+public class EpsilonStruct implements Type {
 
     private final String name;
     private final Map<String, Let> properties;
 
-    public TypeDeclaration(String name, Map<String, Let> properties) {
+    public EpsilonStruct(String name, Map<String, Let> properties) {
         this.name = name;
         this.properties = properties;
     }
@@ -29,4 +30,10 @@ public class TypeDeclaration {
                 ",\n\tproperties=" + PrettyPrintingMap.pretty(properties) +
                 "\t}";
     }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
 }

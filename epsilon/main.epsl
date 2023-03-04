@@ -1,21 +1,32 @@
-type i32 { }
-type String { }
-
-let h: String = "h";
-
 class Window {
     let mut title: String;
     let mut width: i32;
     let mut height: i32;
 }
 
-let create_window: function = func (title: String, height: i32, width: i32) {
+struct Slime {
+    mut hp: i32;
+    mut name: String;
+}
+
+let create_window: function = func (title: String, height: i32, width: i32) -> Window {
        let w: Window = Window();
        w.height = height;
        w.title = title;
        w.width = width;
        return w;
 };
+
+let create_slime: function = func (name: String) -> Slime {
+    return Slime {
+        hp = 30;
+        name = name;
+    };
+};
+
+let slime: Slime = create_slime("Slamy");
+
+println(slime.name);
 
 let window: Window = create_window("Title", 100, 100);
 

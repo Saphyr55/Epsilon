@@ -7,8 +7,8 @@ public final class Syntax {
 
     public final static class Word {
 
-        @Bind(kind = Kind.TypeKw)
-        public static final String Type = "type";
+        @Bind(kind = Kind.StructKw)
+        public static final String Struct = "struct";
         @Bind(kind = Kind.TrueKw)
         public static final String True = "true";
         @Bind(kind = Kind.FalseKw)
@@ -65,8 +65,9 @@ public final class Syntax {
         public static final String CloseBrackets = "}";
         public static final String Colon = ":";
         @Bind(kind = Kind.Assign)
-        @Match(match = "=", kind = Kind.Equal)
         public static final String Equal = "=";
+        @Bind(kind = Kind.Equal, pred = Equal)
+        public static final String EqualEqual = "==";
         public static final String Semicolon = ";";
         public static final String Comma = ",";
         public static final String Dot = ".";

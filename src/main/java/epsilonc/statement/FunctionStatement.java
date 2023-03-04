@@ -2,8 +2,8 @@ package epsilonc.statement;
 
 import epsilonc.Environment;
 import epsilonc.syntax.Token;
-import epsilonc.object.Func;
-import epsilonc.object.TypeDeclaration;
+import epsilonc.object.FuncCallable;
+import epsilonc.type.Type;
 
 import java.util.List;
 import java.util.Map;
@@ -22,8 +22,8 @@ public class FunctionStatement implements Statement {
         this.returnType = returnType;
     }
 
-    public Func createCallable(Environment environment, TypeDeclaration returnTypeDeclaration) {
-        return new Func(environment, this, returnTypeDeclaration);
+    public FuncCallable createCallable(Environment environment, Type returnTypeDeclaration) {
+        return new FuncCallable(environment, this, returnTypeDeclaration);
     }
 
     @Override

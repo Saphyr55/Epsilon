@@ -38,7 +38,7 @@ public class Parser {
             if (match(Kind.ClassKw)) return createClassStatement();
             if (match(Kind.FuncKw)) return createFunction();
             if (match(Kind.LetKw)) return createLetDeclaration();
-            if (match(Kind.TypeKw)) return createTypeStatement();
+            if (match(Kind.StructKw)) return createStructStatement();
 
             return statement();
         } catch (ParseException e) {
@@ -50,11 +50,11 @@ public class Parser {
     /**
      * Create a class statement
      * rule:
-     * ->   class ::= "class" Identifier "{" property "}"
+     * ->   struct ::= "struct" Identifier "{" property* "}"
      *
-     * @return class statement
+     * @return struct statement
      */
-    private Statement createTypeStatement() {
+    private Statement createStructStatement() {
         Token name = consume(Kind.Identifier, "Expect a name for declaring type.");
         consume(Kind.OpenBracket, "Expect to open bracket before declaring type body.");
         List<LetStatement> properties = new ArrayList<>();
@@ -62,7 +62,7 @@ public class Parser {
             properties.add(createPropertyDeclaration());
         }
         consume(Kind.CloseBracket, "Expect to close bracket after declaring type body.");
-        return new TypeStatement(name, properties);
+        return new StructStatement(name, properties);
     }
 
     /**
@@ -164,7 +164,7 @@ public class Parser {
         consume(Kind.Colon, "Expect ':' for declaring type");
         Token type = consume(Kind.Identifier, "Expected declaring type after ':'.");
         if (match(Kind.Assign)) initializer = expression();
-        if (initializer instanceof InitTypeExpression be) {
+        if (initializer instanceof InitSructExpression be) {
             if (type == null) throw report(name, "Expected explicit type before initialize it.");
             be.setType(type);
         }
@@ -312,7 +312,8 @@ public class Parser {
         return statements;
     }
 
-    private List<Statement> createTypeInitializer() {
+    private List<Statement> createStructInitializer() {
+        advance();
         List<Statement> statements = new ArrayList<>();
         while (!check(Kind.CloseBracket) && !isAtEnd()) {
             consume(Kind.Identifier, "Expected a name");
@@ -443,8 +444,9 @@ public class Parser {
         Expression expression = primary();
         boolean search = true;
         while (search) {
-            if (match(Kind.OpenParenthesis)) expression = finishCall(expression);
-            else if (match(Kind.Dot)) {
+            if (match(Kind.OpenParenthesis)) {
+                expression = finishCall(expression);
+            } else if (match(Kind.Dot)) {
                 Token name = consume(Kind.Identifier, "Expect property name after '.'.");
                 expression = new GetterExpression(expression, name);
             }
@@ -455,6 +457,7 @@ public class Parser {
 
     private Expression finishCall(Expression callee) {
         List<Expression> arguments = new ArrayList<>();
+
         if (!check(Kind.CloseParenthesis)) {
             do {
                 if (arguments.size() >= 255) {
@@ -474,9 +477,11 @@ public class Parser {
         if (match(Kind.TrueKw)) return new LiteralExpression(true);
         if (match(Kind.NullKw)) return new LiteralExpression(null);
         if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
-        if (match(Kind.Identifier)) return new LetExpression(previous());
+        if (match(Kind.Identifier)) {
+            if (check(Kind.OpenBracket)) return new InitSructExpression(previous(), createStructInitializer());
+            return new LetExpression(previous());
+        }
         if (match(Kind.FuncKw)) return new AnonymousFuncExpression(createAnonymousFunction());
-        if (match(Kind.OpenBracket)) return new InitTypeExpression(createTypeInitializer());
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");
@@ -492,7 +497,7 @@ public class Parser {
             if (previous().kind() == Kind.Semicolon) return;
             switch (peek().kind()) {
                 case ClassKw, FuncKw, LetKw, ForKw,
-                        IfKw, MutKw, WhileKw, TypeKw, ReturnKw ->
+                        IfKw, MutKw, WhileKw, StructKw, ReturnKw ->
                 { return; }
             }
             advance();

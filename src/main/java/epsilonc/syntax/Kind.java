@@ -55,6 +55,8 @@ public enum Kind {
     LogicalAnd,
     BinaryOr,
     LogicalOr,
-    BreakKw, NamespaceKw, TypeKw,
+    BreakKw,
+    NamespaceKw,
+    StructKw,
 
 }

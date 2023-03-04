@@ -18,4 +18,5 @@ public class AnonymousFuncExpression implements Expression {
     public FunctionStatement getStatement() {
         return statement;
     }
+
 }
