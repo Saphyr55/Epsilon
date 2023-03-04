@@ -1,22 +1,27 @@
 package epsilonc.object;
 
+import epsilonc.type.Type;
+
 public class Let {
 
-    private Object value;
-    private final String type;
+    private Value value;
     private final boolean isMutable;
 
-    public Let(Object value, String type, boolean isMutable) {
+    public Let(Value value, boolean isMutable) {
         this.value = value;
         this.isMutable = isMutable;
-        this.type = type;
     }
 
-    public Object getValue() {
+    public Let(Object value, Type type, boolean isMutable) {
+        this.value = new Value(type, value);
+        this.isMutable = isMutable;
+    }
+
+    public Value getValue() {
         return value;
     }
 
-    public void setValue(Object value) {
+    public void setValue(Value value) {
         this.value = value;
     }
 
@@ -24,14 +29,15 @@ public class Let {
         return isMutable;
     }
 
-    public String getType() {
-        return type;
+    public Type getType() {
+        return value.getType();
     }
 
     @Override
     public String toString() {
         return "Let{" +
-                "value=" + value +
+                "value=" + value.get() +
+                "type=" + getType() +
                 ", isMutable=" + isMutable +
                 '}';
     }

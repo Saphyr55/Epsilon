@@ -1,10 +1,12 @@
 package epsilonc.expression;
 
+import epsilonc.object.Value;
+
 public final class LiteralExpression implements Expression {
 
-    private Object value;
+    private Value value;
 
-    public LiteralExpression(Object value) {
+    public LiteralExpression(Value value) {
         this.value = value;
     }
 
@@ -13,11 +15,11 @@ public final class LiteralExpression implements Expression {
         return visitor.visitLiteralExpression(this);
     }
 
-    public Object getValue() {
+    public Value getValue() {
         return value;
     }
 
-    public void setValue(Object value) {
+    public void setValue(Value value) {
         this.value = value;
     }
 

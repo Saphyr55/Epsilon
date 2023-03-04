@@ -16,7 +16,7 @@ public class StructStatement implements Statement {
 
     @Override
     public <R> R accept(StatementVisitor<R> visitor) {
-        return visitor.visitTypeStatement(this);
+        return visitor.visitStructStatement(this);
     }
 
     public Token getName() {

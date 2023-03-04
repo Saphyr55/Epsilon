@@ -3,10 +3,10 @@ package epsilonc;
 import epsilonc.core.AssignException;
 import epsilonc.core.DeclarationException;
 import epsilonc.core.InterpretRuntimeException;
-import epsilonc.object.EpsilonClass;
 import epsilonc.object.Let;
+import epsilonc.object.Value;
 import epsilonc.syntax.Token;
-import epsilonc.utils.PrettyPrintingMap;
+import epsilonc.type.Type;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +25,7 @@ public class Environment {
         this(null);
     }
 
-    public Object getValue(Token name) {
+    public Value getValue(Token name) {
 
         if (values.containsKey(name.text()))
             return values.get(name.text()).getValue();
@@ -35,15 +35,15 @@ public class Environment {
         throw new DeclarationException(name, "Undefined variable '" + name.text() + "'.");
     }
 
-    public void define(String name, String type, Object value, boolean isMutable) {
-        values.put(name, new Let(value, type, isMutable));
+    public void define(String name, Value value, boolean isMutable) {
+        values.put(name, new Let(value, isMutable));
     }
 
-    public void define(String name, String type, Object value) {
-        values.put(name, new Let(value, type, false));
+    public void define(String name, Value value) {
+        values.put(name, new Let(value, false));
     }
 
-    public void assignAt(Integer distance, Token name, Object value) {
+    public void assignAt(Integer distance, Token name, Value value) {
         if (ancestor(distance).values.containsKey(name.text())) {
             Let let = ancestor(distance).values.get(name.text());
             if (let.isMutable()) {
@@ -54,7 +54,7 @@ public class Environment {
         }
     }
 
-    public void assign(Token name, Object value) {
+    public void assign(Token name, Value value) {
 
         if (values.containsKey(name.text())) {
             Let let = values.get(name.text());
@@ -78,7 +78,7 @@ public class Environment {
         throw new AssignException(name, "Undefined variable '" + name.text() + "'.");
     };
 
-    public Object getAt(Integer distance, String text) {
+    public Value getAt(Integer distance, String text) {
         return ancestor(distance).values.get(text).getValue();
     }
 

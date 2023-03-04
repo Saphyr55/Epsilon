@@ -1,6 +1,7 @@
 package epsilonc.expression;
 
 import epsilonc.syntax.Token;
+import epsilonc.type.Type;
 
 public final class BinaryExpression implements Expression {
 

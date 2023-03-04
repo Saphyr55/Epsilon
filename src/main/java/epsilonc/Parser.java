@@ -2,6 +2,7 @@ package epsilonc;
 
 import epsilonc.core.ParseException;
 import epsilonc.expression.*;
+import epsilonc.object.Value;
 import epsilonc.statement.*;
 import epsilonc.syntax.Kind;
 import epsilonc.syntax.Lexer;
@@ -152,7 +153,7 @@ public class Parser {
      * Create a let statement for a property declaration
      * rule:
      * ->   let ::= let "mut"? Identifier
-     *              (":" Identifier)?
+     *              (":" Identifier)
      *              ("=" expression)? ";"
      *
      * @return let statement
@@ -253,7 +254,7 @@ public class Parser {
             body = new BlockStatement(Arrays.asList(body, new ExpressionStatement(increment)));
 
         if (condition == null)
-            condition = new LiteralExpression(true);
+            condition = new LiteralExpression(Value.ofTrue());
 
         body = new WhileStatement(condition, body);
 
@@ -473,10 +474,11 @@ public class Parser {
     }
 
     private Expression primary() {
-        if (match(Kind.FalseKw)) return new LiteralExpression(false);
-        if (match(Kind.TrueKw)) return new LiteralExpression(true);
-        if (match(Kind.NullKw)) return new LiteralExpression(null);
-        if (match(Kind.Number, Kind.String)) return new LiteralExpression(previous().value());
+        if (match(Kind.FalseKw)) return new LiteralExpression(Value.ofFalse());
+        if (match(Kind.TrueKw)) return new LiteralExpression(Value.ofTrue());
+        if (match(Kind.NullKw)) return new LiteralExpression(Value.ofNull());
+        if (match(Kind.Number)) return new LiteralExpression(Value.ofNumber(previous().value()));
+        if (match(Kind.String)) return new LiteralExpression(Value.ofString(previous().value()));
         if (match(Kind.Identifier)) {
             if (check(Kind.OpenBracket)) return new InitSructExpression(previous(), createStructInitializer());
             return new LetExpression(previous());

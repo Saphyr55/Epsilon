@@ -6,14 +6,14 @@ import epsilonc.type.Type;
 import java.util.List;
 import java.util.Map;
 
-public class EpsilonClass implements Callable, Type {
+public class EClass implements Callable, Type {
 
     private final String name;
     private final Map<String, FuncCallable> methods;
     private final Map<String, FuncCallable> staticFunctions;
     private final Map<String, Let> fields;
 
-    public EpsilonClass(String name, Map<String, FuncCallable> methods, Map<String, FuncCallable> staticFunctions, Map<String, Let> fields) {
+    public EClass(String name, Map<String, FuncCallable> methods, Map<String, FuncCallable> staticFunctions, Map<String, Let> fields) {
         this.name = name;
         this.methods = methods;
         this.staticFunctions = staticFunctions;
@@ -21,8 +21,8 @@ public class EpsilonClass implements Callable, Type {
     }
 
     @Override
-    public Object call(Interpreter inter, List<Object> args) {
-        return new InstanceClass(this);
+    public Value call(Interpreter inter, List<Value> args) {
+        return Value.of(this, new InstanceClass(this));
     }
 
     public Let findFields(String name) {

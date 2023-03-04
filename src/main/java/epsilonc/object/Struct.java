@@ -5,12 +5,12 @@ import epsilonc.utils.PrettyPrintingMap;
 
 import java.util.Map;
 
-public class EpsilonStruct implements Type {
+public class Struct implements Type {
 
     private final String name;
     private final Map<String, Let> properties;
 
-    public EpsilonStruct(String name, Map<String, Let> properties) {
+    public Struct(String name, Map<String, Let> properties) {
         this.name = name;
         this.properties = properties;
     }

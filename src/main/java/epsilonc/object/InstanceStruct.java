@@ -7,20 +7,20 @@ import epsilonc.utils.PrettyPrintingMap;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InstanceType implements Instance {
+public class InstanceStruct implements Instance {
 
-    private EpsilonStruct epsilonStruct;
+    private Struct struct;
     private final Map<String, Let> properties;
 
-    public InstanceType(EpsilonStruct epsilonStruct, Map<String, Object> properties) {
-        this.epsilonStruct = epsilonStruct;
+    public InstanceStruct(Struct struct, Map<String, Value> properties) {
+        this.struct = struct;
         this.properties = new HashMap<>();
-        epsilonStruct.getProperties().forEach((s, let) -> this.properties.put(s, new Let(
-                        properties.get(s), epsilonStruct.getName(), let.isMutable())));
+        struct.getProperties().forEach((s, let) -> this.properties.put(s, new Let(
+                        properties.get(s), struct, let.isMutable())));
     }
 
     @Override
-    public void set(Token name, Object value) {
+    public void set(Token name, Value value) {
         Let let = properties.get(name.text());
 
         if (let == null)
@@ -33,7 +33,7 @@ public class InstanceType implements Instance {
     }
 
     @Override
-    public Object get(Token name) {
+    public Value get(Token name) {
         Let field = properties.get(name.text());
         if (field != null) return field.getValue();
         throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");
@@ -43,18 +43,18 @@ public class InstanceType implements Instance {
         return properties;
     }
 
-    public EpsilonStruct getType() {
-        return epsilonStruct;
+    public Struct getStruct() {
+        return struct;
     }
 
-    public void setType(EpsilonStruct epsilonStruct) {
-        this.epsilonStruct = epsilonStruct;
+    public void getStruct(Struct struct) {
+        this.struct = struct;
     }
 
     @Override
     public String toString() {
         return super.toString()+" {\n" +
-                "\ttype=" + epsilonStruct.getName() +
+                "\ttype=" + struct.getName() +
                 ",\n\tproperties={" + PrettyPrintingMap.pretty(properties) +
                 "}\n}";
     }

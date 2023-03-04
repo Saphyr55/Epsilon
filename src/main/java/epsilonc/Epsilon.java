@@ -28,6 +28,7 @@ public class Epsilon {
         scopeResolver.resolve(statements);
         TypeResolver typeResolver = new TypeResolver(scopeResolver, interpreter);
         typeResolver.resolve(statements);
+        System.out.println("Interpreting :");
         interpreter.interpret(statements);
     }
 

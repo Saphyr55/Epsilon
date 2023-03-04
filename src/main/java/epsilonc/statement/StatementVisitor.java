@@ -10,7 +10,7 @@ public interface StatementVisitor<R> {
     R visitWhileStatement(WhileStatement whileStatement);
     R visitFunctionStatement(FunctionStatement functionStatement);
     R visitClassStatement(ClassStatement classStatement);
-    R visitTypeStatement(StructStatement structStatement);
+    R visitStructStatement(StructStatement structStatement);
     R visitInitStatement(InitStatement initStatement);
 
 }

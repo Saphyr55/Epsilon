@@ -1,5 +1,8 @@
 package epsilonc.utils;
 
+import epsilonc.object.Value;
+import epsilonc.type.NativeType;
+
 public class Utils {
 
     public static String unescapeString(String s){
@@ -13,20 +16,23 @@ public class Utils {
         return sb.toString();
     }
 
-    public static boolean isEqual(Object a, Object b) {
-        if (a == null && b == null) return true;
-        if (a == null) return false;
+    public static Value isEqual(Value a, Value b) {
+        if (a.getType() == NativeType.Null && b.getType() == NativeType.Null) return Value.of(NativeType.Bool, true);
+        if (a.getType() == NativeType.Null) return Value.of(NativeType.Bool, false);
+        return Value.of(NativeType.Bool, a.get().equals(b.get()));
+    }
 
-        return a.equals(b);
+    public static Value isNotEqual(Value a, Value b) {
+        return Value.ofBool(!(boolean) isEqual(a, b).get());
     }
 
     public static boolean isAlphaNumeric(String s) {
         return s != null && s.chars().allMatch(Character::isLetterOrDigit);
     }
 
-    public static boolean isTruthy(Object object) {
-        if (object == null) return false;
-        if (object instanceof Boolean) return (boolean) object;
+    public static boolean isTruthy(Value value) {
+        if (value.getType() == NativeType.Null) return false;
+        if (value.getType() == NativeType.Bool) return (boolean) value.get();
         return true;
     }
 

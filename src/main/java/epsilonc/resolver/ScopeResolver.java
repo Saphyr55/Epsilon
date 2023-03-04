@@ -58,8 +58,8 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitAssignExpression(AssignExpression expression) {
-        resolve(expression.getValue());
-        resolveLocal(expression, expression.getName());
+        resolve(expression.value());
+        resolveLocal(expression, expression.name());
         return null;
     }
 
@@ -169,7 +169,7 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitTypeStatement(StructStatement statement) {
+    public Void visitStructStatement(StructStatement statement) {
         declare(statement.getName());
         define(statement.getName());
         resolve(statement.getProperties());

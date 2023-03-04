@@ -85,6 +85,7 @@ public class TypeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitLetStatement(LetStatement statement) {
+
         return null;
     }
 
@@ -114,7 +115,7 @@ public class TypeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitTypeStatement(StructStatement structStatement) {
+    public Void visitStructStatement(StructStatement structStatement) {
         return null;
     }
 

@@ -1,8 +1,9 @@
 package epsilonc.expression;
 
 import epsilonc.statement.FunctionStatement;
+import epsilonc.type.Type;
 
-public class AnonymousFuncExpression implements Expression {
+public final class AnonymousFuncExpression implements Expression {
 
     private final FunctionStatement statement;
 

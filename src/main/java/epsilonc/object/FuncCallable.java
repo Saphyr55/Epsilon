@@ -8,6 +8,7 @@ import epsilonc.syntax.Token;
 import epsilonc.type.Type;
 
 import java.util.List;
+import java.util.Map;
 
 public class FuncCallable implements Callable {
 
@@ -22,17 +23,19 @@ public class FuncCallable implements Callable {
     }
 
     @Override
-    public Object call(Interpreter inter, List<Object> args) {
+    public Value call(Interpreter inter, List<Value> args) {
         Environment environment = new Environment(closure);
         List<Token> listTokenArgs = declaration.getParams().keySet().stream().toList();
         List<Token> listTokenType = declaration.getParams().values().stream().toList();
         for (int i = 0; i < declaration.getParams().size(); i++) {
-            environment.define(listTokenArgs.get(i).text(), listTokenType.get(i).text(), args.get(i));
+            environment.define(listTokenArgs.get(i).text(), Value.of(
+                            closure.getValue(listTokenType.get(i)).getType(),
+                            closure.getValue(listTokenType.get(i)).get()));
         }
         try {
             inter.executeBlock(declaration.getBody(), environment);
         } catch (ReturnRuntimeException returnValue) {
-            return returnValue.getValue();
+            return Value.of(returnType, returnValue.getValue());
         }
         return null;
     }
