@@ -3,7 +3,7 @@ package epsilonc.object;
 public class Let {
 
     private Object value;
-    private String type;
+    private final String type;
     private final boolean isMutable;
 
     public Let(Object value, String type, boolean isMutable) {

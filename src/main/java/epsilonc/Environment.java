@@ -3,6 +3,7 @@ package epsilonc;
 import epsilonc.core.AssignException;
 import epsilonc.core.DeclarationException;
 import epsilonc.core.InterpretRuntimeException;
+import epsilonc.object.EpsilonClass;
 import epsilonc.object.Let;
 import epsilonc.syntax.Token;
 
@@ -23,12 +24,12 @@ public class Environment {
         this(null);
     }
 
-    public Object get(Token name) {
+    public Object getValue(Token name) {
 
         if (values.containsKey(name.text()))
             return values.get(name.text()).getValue();
 
-        if (enclosing != null) return enclosing.get(name);
+        if (enclosing != null) return enclosing.getValue(name);
 
         throw new DeclarationException(name, "Undefined variable '" + name.text() + "'.");
     }

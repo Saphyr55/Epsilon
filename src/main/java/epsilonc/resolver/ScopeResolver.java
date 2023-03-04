@@ -7,20 +7,22 @@ import epsilonc.core.ResolverRuntimeException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
 public class ScopeResolver implements Resolver<Void, Void> {
 
-    public record Scope(String type, boolean isDefine) {}
+    public record Scope(String type, boolean isDefine) { }
 
     private FunctionType currentFunction = FunctionType.None;
     private final Interpreter interpreter;
-    private final Stack<Map<String, Scope>> scopes = new Stack<>();
+    private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 
     public ScopeResolver(Interpreter interpreter) {
         this.interpreter = interpreter;
+        beginScope();
     }
 
     @Override
@@ -49,7 +51,7 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitLetExpression(LetExpression expression) {
-        if (!scopes.isEmpty() && !scopes.peek().get(expression.getName().text()).isDefine) {
+        if (!scopes.isEmpty() && scopes.peek().get(expression.getName().text()) == Boolean.FALSE) {
             throw new ResolverRuntimeException(expression.getName(), "Can't read local variable in its own initializer.");
         }
         resolveLocal(expression, expression.getName());
@@ -79,8 +81,6 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        declare(expression.getStatement().getName(), NativeType.Func);
-        define(expression.getStatement().getName(), NativeType.Func);
         resolveFunction(expression.getStatement(), FunctionType.Anonymous);
         return null;
     }
@@ -99,9 +99,9 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitBlockExpression(InitTypeExpression expression) {
+    public Void visitBlockExpression(InitTypeExpression initTypeExpression) {
         beginScope();
-        resolve(expression.getStatements());
+        resolve(initTypeExpression.getStatements());
         endScope();
         return null;
     }
@@ -124,10 +124,10 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitLetStatement(LetStatement statement) {
-        declare(statement.getName(), statement.getType().text());
+        declare(statement.getName());
         if (statement.getInitializer() != null)
             resolve(statement.getInitializer());
-        define(statement.getName(), statement.getType().text());
+        define(statement.getName());
         return null;
     }
 
@@ -156,16 +156,16 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-        declare(statement.getName(), NativeType.Func);
-        define(statement.getName(), NativeType.Func);
+        declare(statement.getName());
+        define(statement.getName());
         resolveFunction(statement, FunctionType.Function);
         return null;
     }
 
     @Override
     public Void visitClassStatement(ClassStatement statement) {
-        declare(statement.getName(), statement.getName().text());
-        define(statement.getName(), statement.getName().text());
+        declare(statement.getName());
+        define(statement.getName());
         resolve(statement.getFields());
         resolve(statement.getStaticFunctions());
         resolve(statement.getMethods());
@@ -174,8 +174,8 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitTypeStatement(TypeStatement statement) {
-        declare(statement.getName(), statement.getName().text());
-        define(statement.getName(), statement.getName().text());
+        declare(statement.getName());
+        define(statement.getName());
         resolve(statement.getProperties());
         return null;
     }
@@ -194,17 +194,20 @@ public class ScopeResolver implements Resolver<Void, Void> {
         scopes.pop();
     }
 
-    private void declare(Token name, String type) {
+    private void declare(Token name) {
+
         if (scopes.isEmpty()) return;
-        Map<String, Scope> scope = scopes.peek();
+
+        Map<String, Boolean> scope = scopes.peek();
         if (scope.containsKey(name.text()))
             throw new ResolverRuntimeException(name, "Already a variable with this name in this scope.");
-        scope.put(name.text(), new Scope(type, false));
+
+        scope.put(name.text(), false);
     }
 
-    private void define(Token name, String type) {
+    private void define(Token name) {
         if (scopes.isEmpty()) return;
-        scopes.peek().put(name.text(), new Scope(type, true));
+        scopes.peek().put(name.text(), true);
     }
 
     private void resolveLocal(Expression expression, Token name) {
@@ -221,8 +224,8 @@ public class ScopeResolver implements Resolver<Void, Void> {
         currentFunction = type;
         beginScope();
         for (var param : statement.getParams().entrySet()) {
-            declare(param.getKey(), param.getValue().text());
-            define(param.getKey(), param.getValue().text());
+            declare(param.getKey());
+            define(param.getKey());
         }
         resolve(statement.getBody());
         endScope();

@@ -95,7 +95,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-        Object o = environment.get(statement.getReturnType());
+        Object o = environment.getValue(statement.getReturnType());
         if (o instanceof TypeDeclaration typeDeclaration) {
             environment.define(statement.getName().text(), NativeType.Func,
                     statement.createCallable(environment, typeDeclaration), false);
@@ -109,7 +109,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
         Map<String, Func> functions = new HashMap<>();
         statement.getStaticFunctions().forEach(s -> {
-            if (environment.get(s.getName()) instanceof TypeDeclaration typeDeclaration)
+            if (environment.getValue(s.getName()) instanceof TypeDeclaration typeDeclaration)
                 functions.put(s.getName().text(), s.createCallable(environment, typeDeclaration));
         });
 
@@ -119,7 +119,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
         Map<String, Func> methods = new HashMap<>();
         statement.getMethods().forEach(s -> {
-            if (environment.get(s.getName()) instanceof TypeDeclaration typeDeclaration)
+            if (environment.getValue(s.getName()) instanceof TypeDeclaration typeDeclaration)
                 methods.put(s.getName().text(), s.createCallable(environment, typeDeclaration));
         });
 
@@ -276,7 +276,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        if (environment.get(expression.getStatement().getReturnType()) instanceof TypeDeclaration typeDeclaration)
+        if (environment.getValue(expression.getStatement().getReturnType()) instanceof TypeDeclaration typeDeclaration)
             return expression.getStatement().createCallable(environment, typeDeclaration);
         throw new InterpretRuntimeException(expression.getStatement().getReturnType(), "Dont recognize '" +
                 expression.getStatement().getReturnType() + "' as type.");
@@ -309,7 +309,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             if (s instanceof InitStatement is)
                 attributions.put(is.getName().text(), evaluate(is.getValue()));
         });
-        Object oType = environment.get(expression.getType());
+        Object oType = environment.getValue(expression.getType());
         if (oType instanceof TypeDeclaration typeDeclaration) {
             check(expression.getType(), typeDeclaration, attributions);
             return new InstanceType(typeDeclaration, attributions);
@@ -361,7 +361,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (distance != null) {
             return environment.getAt(distance, name.text());
         } else {
-            return globals.get(name);
+            return globals.getValue(name);
         }
     }
 

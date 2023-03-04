@@ -1,6 +1,5 @@
 package epsilonc;
 
-import epsilonc.core.NativeType;
 import epsilonc.core.ParseException;
 import epsilonc.expression.*;
 import epsilonc.statement.*;
@@ -39,7 +38,7 @@ public class Parser {
             if (match(Kind.ClassKw)) return createClassStatement();
             if (match(Kind.FuncKw)) return createFunction();
             if (match(Kind.LetKw)) return createLetDeclaration();
-            if (match(Kind.TypeKw)) return createTypeDeclaration();
+            if (match(Kind.TypeKw)) return createTypeStatement();
 
             return statement();
         } catch (ParseException e) {
@@ -48,9 +47,15 @@ public class Parser {
         }
     }
 
-    private Statement createTypeDeclaration() {
+    /**
+     * Create a class statement
+     * rule:
+     * ->   class ::= "class" Identifier "{" property "}"
+     *
+     * @return class statement
+     */
+    private Statement createTypeStatement() {
         Token name = consume(Kind.Identifier, "Expect a name for declaring type.");
-        consume(Kind.Assign, "Expect '=' to assign the type to the name");
         consume(Kind.OpenBracket, "Expect to open bracket before declaring type body.");
         List<LetStatement> properties = new ArrayList<>();
         while (!check(Kind.CloseBracket) && !isAtEnd())  {
@@ -60,6 +65,15 @@ public class Parser {
         return new TypeStatement(name, properties);
     }
 
+    /**
+     * Create a class statement
+     * utility:
+     * ->   method ::= "method" Identifier "(" parameters ")" block
+     * rule:
+     * ->   class ::= "class" Identifier "{" (method* | let* | function*) "}"
+     *
+     * @return class statement
+     */
     private Statement createClassStatement() {
 
         Token name = consume(Kind.Identifier, "Expected a name for declaring class.");
@@ -77,6 +91,7 @@ public class Parser {
                 functions.add(createFunction());
             else if (match(Kind.LetKw))
                 fields.add((LetStatement) createLetDeclaration());
+            else throw report(peek(), "Don't authorized this syntax in class");
 
         }
 
@@ -92,6 +107,17 @@ public class Parser {
         return createFunction(true);
     }
 
+    /**
+     * Create a function statement
+     * utility:
+     * ->   parameters    ::= Identifier ( "," IDENTIFIER )*
+     * ->   arguments     ::= expression ( "," expression )*
+     * rule:
+     * ->    function ::= "func" Identifier? "(" parameters? ")" block
+     *
+     * @param isAnonymous check if anonymous
+     * @return function statement
+     */
     private FunctionStatement createFunction(boolean isAnonymous) {
 
         Token name = null;
@@ -122,6 +148,15 @@ public class Parser {
         return new FunctionStatement(name, parameters, body, returnType);
     }
 
+    /**
+     * Create a let statement for a property declaration
+     * rule:
+     * ->   let ::= let "mut"? Identifier
+     *              (":" Identifier)?
+     *              ("=" expression)? ";"
+     *
+     * @return let statement
+     */
     private Statement createLetDeclaration() {
         boolean mutable = match(Kind.MutKw);
         Token name = consume(Kind.Identifier, "Expect a name before let assignment.");
@@ -137,6 +172,15 @@ public class Parser {
         return new LetStatement(name, type, initializer, mutable);
     }
 
+    /**
+     * Create a let statement for a property declaration
+     * rule:
+     * ->   property ::= "mut"? Identifier
+     *              (":" Identifier)?
+     *              ("=" expression)? ";"
+     *
+     * @return let statement
+     */
     private LetStatement createPropertyDeclaration() {
         boolean mutable = match(Kind.MutKw);
         Token name = consume(Kind.Identifier, "Expected a name for a property");
@@ -147,6 +191,15 @@ public class Parser {
         return new LetStatement(name, type, new LiteralExpression(null), mutable);
     }
 
+    /**
+     * statement ::= expressionStatement
+     *                | forStmt
+     *                | whileStmt
+     *                | ifStmt
+     *                | returnStmt
+     *                | block
+     * @return statement
+     */
     private Statement statement() {
         if (match(Kind.ForKw)) return createForStatement();
         if (match(Kind.WhileKw)) return createWhileStatement();
@@ -156,6 +209,13 @@ public class Parser {
         return createExpressionStatement();
     }
 
+    /**
+     * Create a return statement
+     * rule:
+     * -> return ::= "return" expression? ";"
+     *
+     * @return return statement
+     */
     private Statement createReturnStatement() {
         Token kw = previous();
         Expression value = check(Kind.Semicolon) ? null : expression();
@@ -163,6 +223,15 @@ public class Parser {
         return new ReturnStatement(kw, value);
     }
 
+    /**
+     * Create a for statement
+     * rule:
+     * -> for ::= "for" "(" expression?
+     *            ";" expression?
+     *            ";" expression? ")" statement
+     *
+     * @return for statement
+     */
     private Statement createForStatement() {
 
         consume(Kind.OpenParenthesis, "Expected '(' after 'for' loop");
@@ -194,6 +263,13 @@ public class Parser {
         return body;
     }
 
+    /**
+     * Create while statement
+     * rule:
+     * ->   while ::= "while" "(" expression ")" statement
+     *
+     * @return while statement
+     */
     private Statement createWhileStatement() {
         consume(Kind.OpenParenthesis, "Expect '(' after 'while'.");
         Expression condition = expression();
@@ -201,6 +277,13 @@ public class Parser {
         return new WhileStatement(condition, statement());
     }
 
+    /**
+     * Create a if statement
+     * rule:
+     * ->   if ::= "if" "(" expression ")" statement ("else" statement)?
+     *
+     * @return if statement
+     */
     private Statement createIfStatement() {
 
         consume(Kind.OpenParenthesis, "Expected '(' after if.");
@@ -213,6 +296,13 @@ public class Parser {
         return new IfStatement(condition, thenBranch, elseBranch);
     }
 
+    /**
+     * Create a list of statement representing a block
+     * rule:
+     * -> block ::= "{" declaration "}"
+     *
+     * @return list statement (block)
+     */
     private List<Statement> createBlock() {
         List<Statement> statements = new ArrayList<>();
         while (!check(Kind.CloseBracket) && !isAtEnd()) {
