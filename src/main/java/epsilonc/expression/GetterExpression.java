@@ -4,11 +4,11 @@ import epsilonc.syntax.Token;
 
 public class GetterExpression implements Expression {
 
-    private final Expression object;
+    private final Expression value;
     private final Token name;
 
-    public GetterExpression(Expression object, Token name) {
-        this.object = object;
+    public GetterExpression(Expression value, Token name) {
+        this.value = value;
         this.name = name;
     }
 
@@ -21,8 +21,8 @@ public class GetterExpression implements Expression {
         return name;
     }
 
-    public Expression getObjet() {
-        return object;
+    public Expression getValue() {
+        return value;
     }
 
 }

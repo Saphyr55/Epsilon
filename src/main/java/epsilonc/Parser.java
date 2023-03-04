@@ -353,7 +353,7 @@ public class Parser {
             if (expression instanceof LetExpression le)
                 return new AssignExpression(le.getName(), value);
             else if (expression instanceof GetterExpression ge)
-                return new SetterExpression(ge.getObjet(), ge.getName(), value);
+                return new SetterExpression(ge.getValue(), ge.getName(), value);
 
             throw report(equals, "Invalid assignment target.");
         }

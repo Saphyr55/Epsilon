@@ -29,6 +29,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         locals = new HashMap<>();
         environment = globals;
         NativeFunction.defineAll(this);
+        NativeType.defineAllNativeTypes(this);
     }
 
     public void interpret(List<Statement> statements) {
@@ -56,10 +57,10 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         evaluate(statement.getExpression());
         return null;
     }
-
+    
     @Override
     public Void visitReturnStatement(ReturnStatement statement) {
-        Object value = statement.getValue() == null ? null : evaluate(statement.getValue());
+        Value value = statement.getValue() == null ? Value.ofVoid() : evaluate(statement.getValue());
         throw new ReturnRuntimeException(value);
     }
 
@@ -69,12 +70,10 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         if (statement.getInitializer() != null)
             value = evaluate(statement.getInitializer());
 
-        Type type = environment.getValue(statement.getType()).getType();
-        if (type instanceof NativeType.TNull) {
-            environment.define(statement.getName().text(), Value.of(type, value), statement.isMutable());
-            return null;
-        }
-        throw new InterpretRuntimeException(statement.getName(), "Dont recognize '" + statement.getName().text() + "' as type.");
+        environment.define(statement.getName().text(),
+                value == null ? Value.of(environment.getValue(statement.getType()).getType()) : value,
+                statement.isMutable());
+        return null;
     }
 
     @Override
@@ -103,21 +102,10 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-
-        Value o = environment.getValue(statement.getReturnType());
-
-        statement.getParams().values().forEach(token -> {
-            if (!(environment.getValue(token) instanceof Type))
-                throw new InterpretRuntimeException(token, "Dont recognize '" + token.text() + "' as type.");
-        });
-
-        if (o != null) {
-            environment.define(statement.getName().text(),
-                    Value.ofFunc(statement.createCallable(environment, o.getType())));
-            return null;
-        }
-
-        throw new InterpretRuntimeException(statement.getName(), "Dont recognize '" + statement.getReturnType().text() + "' as type.");
+        statement.getParams().values().forEach(param -> environment.getValue(param));
+        environment.define(statement.getName().text(),
+                Value.ofFunc(statement.createCallable(environment, environment.getValue(statement.getReturnType()).getType())));
+        return null;
     }
 
     @Override
@@ -125,10 +113,10 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
         Map<String, Let> fields = new HashMap<>();
         for (var s : statement.getFields()) {
-            onCheckType(s.getType(), (Function<Type, Void>) type -> {
-                fields.put(s.getName().text(), new Let(evaluate(s.getInitializer()), type, s.isMutable()));
-                return null;
-                }, new InterpretRuntimeException(s.getType(), "Dont recognize '" + s.getType().text() + "' as type."));
+
+            fields.put(s.getName().text(),
+                    new Let(Value.of(environment.getValue(s.getType()).getType(), evaluate(s.getInitializer()).get()),
+                    s.isMutable()));
         }
 
         Map<String, FuncCallable> methods = new HashMap<>();
@@ -145,7 +133,10 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
     @Override
     public Void visitStructStatement(StructStatement statement) {
         Map<String, Let> properties = new HashMap<>();
-        statement.getProperties().forEach(s -> properties.put(s.getName().text(), createLet(s)));
+        statement.getProperties().forEach(s -> properties.put(
+                        s.getName().text(),
+                        new Let(Value.of(environment.getType(s.getType())),
+                        s.isMutable())));
         Struct tp = new Struct(statement.getName().text(), properties);
         environment.define(statement.getName().text(), Value.of(() -> statement.getName().text(), tp));
         return null;
@@ -170,13 +161,13 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                 checkNumberOperands(op, left, right);
                 yield Value.ofNumber((double) left.get() <= (double) right.get());
             }
-            case Less -> {
-                checkNumberOperands(op, left, right);
-                yield Value.ofNumber((double) left.get() < (double) right.get());
-            }
             case GreaterEqual -> {
                 checkNumberOperands(op, left, right);
                 yield Value.ofNumber((double) left.get() >= (double) right.get());
+            }
+            case Less -> {
+                checkNumberOperands(op, left, right);
+                yield Value.ofNumber((double) left.get() < (double) right.get());
             }
             case Greater -> {
                 checkNumberOperands(op, left, right);
@@ -207,7 +198,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                 if (right.getType() instanceof NativeType.TString && left.getType() instanceof NativeType.TNumber)
                     yield Value.ofString((double) left.get() + (String) right.get());
 
-                if (left.getType() instanceof NativeType.TNull) {
+                if (left.get() == null) {
                     if (right.getType() instanceof NativeType.TString)
                         yield  Value.ofString(Syntax.Word.Null + right.get());
 
@@ -215,7 +206,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                         yield Value.ofString(Syntax.Word.Null + right.get());
                 }
 
-                if (right.getType() instanceof NativeType.TNull) {
+                if (right.get() == null) {
                     if (left.getType() instanceof NativeType.TString)
                         yield Value.ofString(left.get() + Syntax.Word.Null);
 
@@ -225,7 +216,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
                 throw new InterpretRuntimeException(op, "Operands must be two numbers or two strings.");
             }
-            default -> Value.ofNull();
+            default -> Value.ofVoid();
         };
 
     }
@@ -249,7 +240,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                 yield Value.ofNumber(-(double)right.get());
             }
             case Not -> Value.ofBool(!isTruthy(right));
-            default -> Value.ofNull();
+            default -> Value.ofVoid();
         };
     }
 
@@ -282,18 +273,18 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
     @Override
     public Value visitCallExpression(CallExpression expression) {
-        Value callable = evaluate(expression.getCallable());
+        Value value = evaluate(expression.getCallable());
 
         List<Value> arguments = expression.getArguments().stream().toList()
                         .stream().map(this::evaluate).toList();
 
-        if (callable instanceof Callable c) {
-            if (arguments.size() != c.arity()) {
+        if (value.get() instanceof Callable callable) {
+            if (arguments.size() != callable.arity()) {
                 throw new InterpretRuntimeException(expression.getParen(), "Expected " +
-                        c.arity() + " arguments but got " +
+                        callable.arity() + " arguments but got " +
                         arguments.size() + ".");
             }
-            return c.call(this, arguments);
+            return callable.call(this, arguments);
         }
 
         throw new InterpretRuntimeException(expression.getParen(), "Can only call functions and classes.");
@@ -301,18 +292,14 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
     @Override
     public Value visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-
-        if (environment.getValue(expression.getStatement().getReturnType()) instanceof Type type)
-            return new Value(NativeType.Func ,expression.getStatement().createCallable(environment, type));
-
-        throw new InterpretRuntimeException(expression.getStatement().getReturnType(), "Dont recognize '" +
-                expression.getStatement().getReturnType() + "' as type.");
+        return Value.ofFunc(expression.getStatement()
+                .createCallable(environment, environment.getValue(expression.getStatement().getReturnType()).getType()));
     }
 
     @Override
     public Value visitGetterExpression(GetterExpression expression) {
-        Value object = evaluate(expression.getObjet());
-        if (object instanceof Instance instance) {
+        Value object = evaluate(expression.getValue());
+        if (object.get() instanceof Instance instance) {
             return instance.get(expression.getName());
         }
         throw new InterpretRuntimeException(expression.getName(), "Only instances have properties.");
@@ -321,32 +308,35 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
     @Override
     public Value visitSetterExpression(SetterExpression expression) {
         Value object = evaluate(expression.getObject());
-        if (object instanceof Instance instanceClass) {
+        if (object.get() instanceof Instance instance) {
             Value value = evaluate(expression.getValue());
-            instanceClass.set(expression.getName(), value);
+            instance.set(expression.getName(), value);
             return value;
         }
-        throw new InterpretRuntimeException(expression.getName(), "Only instance have fields");
+        throw new InterpretRuntimeException(expression.getName(), "Only instances have fields");
     }
 
     @Override
     public Value visitInitStructExpression(InitSructExpression expression) {
+
         Map<String, Value> attributions = new HashMap<>();
-        expression.getStatements().forEach(s -> {
-            if (s instanceof InitStatement is)
+
+        expression.getStatements().forEach(stmt -> {
+            if (stmt instanceof InitStatement is)
                 attributions.put(is.getName().text(), evaluate(is.getValue()));
         });
-        Value oType = environment.getValue(expression.getType());
-        if (oType.getType() instanceof Struct struct) {
+
+        if (environment.getValue(expression.getType()).getType() instanceof Struct struct) {
             check(expression.getType(), struct, attributions);
             return Value.of(struct, new InstanceStruct(struct, attributions));
         }
+
         throw new InterpretRuntimeException(expression.getType(),
                 "Not recognize the type '"+expression.getType().text()+"'.");
     }
 
     public Value evaluate(Expression expression) {
-        if (expression == null) return null;
+        if (expression == null) return Value.ofVoid();
         return expression.accept(this);
     }
 
@@ -364,11 +354,11 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         throw new InterpretRuntimeException(operator, "Operands must be numbers.");
     }
 
-    public String stringify(Object object) {
+    public String stringify(Value object) {
 
-        if (object == null) return Syntax.Word.Null;
+        if (object.get() == null) return Syntax.Word.Null;
 
-        if (object instanceof Double) {
+        if (object.getType() instanceof NativeType.TNumber) {
             String text_ = object.toString();
             if (text_.endsWith(".0")) {
                 text_ = text_.substring(0, text_.length() - 2);
@@ -407,21 +397,6 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                         "'"+name.text()+"' not correspond at '" + struct.getName()+"'.");
             }
         }
-    }
-
-    private Let createLet(LetStatement statement) {
-        return onCheckType(
-                statement.getName(),
-                type -> new Let(null, type, statement.isMutable()),
-                new InterpretRuntimeException(statement.getType(), "Don't recognized " + statement.getName().text() +" as type.") );
-    }
-
-    private <R> R onCheckType(Token name, Function<Type, R> function, InterpretRuntimeException e) {
-        Object o = environment.getValue(name);
-        if (o instanceof Type type) {
-            return function.apply(type);
-        }
-        throw e;
     }
 
 }

@@ -13,8 +13,16 @@ public class Value {
         this.value = value;
     }
 
+    public Value move() {
+        return new Value(type, value);
+    }
+
     public static Value of(Type type, Object value) {
         return new Value(type, value);
+    }
+
+    public static Value of(Type type) {
+        return new Value(type, null);
     }
 
     public static Value ofBool(Object value) {
@@ -43,10 +51,6 @@ public class Value {
 
     public static Value ofVoid() {
         return Value.of(NativeType.Void, null);
-    }
-
-    public static Value ofNull() {
-        return Value.of(NativeType.Null, null);
     }
 
     public Object get() {

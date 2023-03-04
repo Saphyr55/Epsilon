@@ -1,39 +1,18 @@
-class String { }
-class i32 { }
-
-let d: i32 = 1 + 11210;
-
-println(d);
+struct i32 { }
 
 class Window {
-    let mut title: String;
+    let mut title: string;
     let mut width: i32;
     let mut height: i32;
 }
 
-struct Human {
-    mut hp: i32;
-    mut name: String;
-}
-
-let create_window: function = func (title: String, height: i32, width: i32) -> Window {
+let create_window: function = func (title: string, height: i32, width: i32) -> Window {
        let w: Window = Window();
        w.height = height;
        w.title = title;
        w.width = width;
        return w;
 };
-
-let create_human: function = func (name: String) -> Human {
-    return Human {
-        hp = 30;
-        name = name;
-    };
-};
-
-let human: Human = create_human("Slamy");
-
-println(human.name);
 
 let window: Window = create_window("Title", 100, 100);
 
@@ -48,4 +27,22 @@ window.title = "Title 'By let' Changed";
 
 println(window.title);
 println(window2.title);
+
+struct Human {
+    mut hp: i32;
+    mut name: string;
+}
+
+let create_human: function = func (name: string) -> Human {
+    return Human {
+        hp = 30;
+        name = name;
+    };
+};
+
+let human: Human = create_human("Slamy");
+
+println(human.name);
+
+
 

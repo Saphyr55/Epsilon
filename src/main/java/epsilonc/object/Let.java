@@ -12,11 +12,6 @@ public class Let {
         this.isMutable = isMutable;
     }
 
-    public Let(Object value, Type type, boolean isMutable) {
-        this.value = new Value(type, value);
-        this.isMutable = isMutable;
-    }
-
     public Value getValue() {
         return value;
     }

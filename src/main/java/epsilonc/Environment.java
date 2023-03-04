@@ -13,16 +13,22 @@ import java.util.Map;
 
 public class Environment {
 
+    private final Map<String, Type> types;
     private final Map<String, Let> values;
     private final Environment enclosing;
 
     public Environment(Environment enclosing) {
         this.enclosing = enclosing;
-        values = new HashMap<>();
+        this.values = new HashMap<>();
+        this.types = new HashMap<>();
     }
 
     public Environment() {
         this(null);
+    }
+
+    public Type getType(Token name) {
+        return getValue(name).getType();
     }
 
     public Value getValue(Token name) {
@@ -32,11 +38,15 @@ public class Environment {
 
         if (enclosing != null) return enclosing.getValue(name);
 
-        throw new DeclarationException(name, "Undefined variable '" + name.text() + "'.");
+        throw new DeclarationException(name, "Undefined variable '" + name.text() + "' on get value.");
     }
 
     public void define(String name, Value value, boolean isMutable) {
         values.put(name, new Let(value, isMutable));
+    }
+
+    public void define(String name, Type type) {
+        types.put(name, type);
     }
 
     public void define(String name, Value value) {
@@ -75,7 +85,8 @@ public class Environment {
             }
         }
 
-        throw new AssignException(name, "Undefined variable '" + name.text() + "'.");
+
+        throw new AssignException(name, "Undefined variable '" + name.text() + "' on assign.");
     };
 
     public Value getAt(Integer distance, String text) {

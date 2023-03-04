@@ -15,7 +15,9 @@ public class InstanceClass implements Instance {
     public InstanceClass(EClass eClass) {
         this.eClass = eClass;
         this.properties = new HashMap<>();
-        eClass.getFields().forEach((s, let) -> properties.put(s, new Let(let.getValue(), let.getType(), let.isMutable())));
+        eClass.getFields().forEach((s, let) -> properties.put(
+                s, new Let(Value.of(let.getType(), let.getValue().get()), let.isMutable()))
+        );
         this.methods = new HashMap<>(eClass.getMethods());
     }
 
@@ -23,7 +25,7 @@ public class InstanceClass implements Instance {
 
         Let let = properties.get(name.text());
         if (let == null)
-            throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");
+            throw new InterpretRuntimeException(name, "Undefined attribute '"+name.text()+"'.");
 
         if (!let.isMutable() && let.getValue() != null)
             throw new InterpretRuntimeException(name, "'"+name.text()+"' isn't mutable.");
@@ -39,6 +41,6 @@ public class InstanceClass implements Instance {
         FuncCallable method = methods.get(name.text());
         if (method != null) return Value.ofFunc(method);
 
-        throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");
+        throw new InterpretRuntimeException(name, "Undefined attribute '"+name.text()+"'.");
     }
 }

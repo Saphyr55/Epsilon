@@ -85,7 +85,7 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitGetterExpression(GetterExpression expression) {
-        resolve(expression.getObjet());
+        resolve(expression.getValue());
         return null;
     }
 

@@ -17,8 +17,8 @@ public class Utils {
     }
 
     public static Value isEqual(Value a, Value b) {
-        if (a.getType() == NativeType.Null && b.getType() == NativeType.Null) return Value.of(NativeType.Bool, true);
-        if (a.getType() == NativeType.Null) return Value.of(NativeType.Bool, false);
+        if (a.get() == null && b.get() == null) return Value.of(NativeType.Bool, true);
+        if (a.get() == null) return Value.of(NativeType.Bool, false);
         return Value.of(NativeType.Bool, a.get().equals(b.get()));
     }
 
@@ -26,12 +26,8 @@ public class Utils {
         return Value.ofBool(!(boolean) isEqual(a, b).get());
     }
 
-    public static boolean isAlphaNumeric(String s) {
-        return s != null && s.chars().allMatch(Character::isLetterOrDigit);
-    }
-
     public static boolean isTruthy(Value value) {
-        if (value.getType() == NativeType.Null) return false;
+        if (value.get() == null) return false;
         if (value.getType() == NativeType.Bool) return (boolean) value.get();
         return true;
     }

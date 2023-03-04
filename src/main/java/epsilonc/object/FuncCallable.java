@@ -47,7 +47,7 @@ public class FuncCallable implements Callable {
 
     @Override
     public String toString() {
-        return "<fn " + declaration.getName().text() + ">";
+        return "<func " + declaration.getName() + ">";
     }
 
     public Environment getClosure() {
