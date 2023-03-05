@@ -54,4 +54,9 @@ public class EClass implements Callable, Type {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return "EClass{" + "name='" + name + '\'' + '}';
+    }
+
 }

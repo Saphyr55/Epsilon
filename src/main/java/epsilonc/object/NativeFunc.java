@@ -1,26 +1,25 @@
 package epsilonc.object;
 
 import epsilonc.resolver.Interpreter;
-import epsilonc.type.NativeType;
 
 import java.util.List;
 
-public class FuncNative implements Callable {
+public class NativeFunc implements Callable {
 
     private final int arity;
     private final Callable callable;
 
-    public FuncNative(int arity, Callable callable) {
+    public NativeFunc(int arity, Callable callable) {
         this.arity = arity;
         this.callable = callable;
     }
 
     public static Value createValue(int arity, Callable callable) {
-        return Value.ofFunc(new FuncNative(arity, callable));
+        return Value.ofFunc(new NativeFunc(arity, callable));
     }
 
     public static Value createValue(Callable callable) {
-        return Value.ofFunc(new FuncNative(0, callable));
+        return Value.ofFunc(new NativeFunc(0, callable));
     }
 
     @Override

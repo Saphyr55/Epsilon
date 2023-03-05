@@ -9,6 +9,7 @@ public class Value {
     private Object value;
 
     public Value(Type type, Object value) {
+        if (value instanceof Value) throw new RuntimeException();
         this.type = type;
         this.value = value;
     }
@@ -19,6 +20,10 @@ public class Value {
 
     public static Value of(Type type, Object value) {
         return new Value(type, value);
+    }
+
+    public static Value ofType(Type value) {
+        return Value.of(value, value);
     }
 
     public static Value of(Type type) {
@@ -59,5 +64,13 @@ public class Value {
 
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public String toString() {
+        return "Value{" +
+                "type=" + type +
+                ", value=" + value +
+                '}';
     }
 }

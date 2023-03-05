@@ -15,9 +15,7 @@ public class InstanceClass implements Instance {
     public InstanceClass(EClass eClass) {
         this.eClass = eClass;
         this.properties = new HashMap<>();
-        eClass.getFields().forEach((s, let) -> properties.put(
-                s, new Let(Value.of(let.getType(), let.getValue().get()), let.isMutable()))
-        );
+        eClass.getFields().forEach((s, let) -> properties.put(s, new Let(let.getValue(), let.isMutable())));
         this.methods = new HashMap<>(eClass.getMethods());
     }
 

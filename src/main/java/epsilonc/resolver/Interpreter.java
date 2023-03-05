@@ -69,9 +69,8 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         Value value = null;
         if (statement.getInitializer() != null)
             value = evaluate(statement.getInitializer());
-
         environment.define(statement.getName().text(),
-                value == null ? Value.of(environment.getValue(statement.getType()).getType()) : value,
+                value == null ? Value.of(environment.getType(statement.getType())) : value,
                 statement.isMutable());
         return null;
     }
@@ -104,7 +103,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
     public Void visitFunctionStatement(FunctionStatement statement) {
         statement.getParams().values().forEach(param -> environment.getValue(param));
         environment.define(statement.getName().text(),
-                Value.ofFunc(statement.createCallable(environment, environment.getValue(statement.getReturnType()).getType())));
+                Value.ofFunc(statement.createCallable(environment, environment.getType(statement.getReturnType()))));
         return null;
     }
 
@@ -115,7 +114,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         for (var s : statement.getFields()) {
 
             fields.put(s.getName().text(),
-                    new Let(Value.of(environment.getValue(s.getType()).getType(), evaluate(s.getInitializer()).get()),
+                    new Let(Value.of(environment.getType(s.getType()), evaluate(s.getInitializer()).get()),
                     s.isMutable()));
         }
 
@@ -126,7 +125,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         statement.getStaticFunctions().forEach(this::visitFunctionStatement);
 
         EClass epsClass = new EClass(statement.getName().text(), methods, functions, fields);
-        environment.define(statement.getName().text(), Value.of(() -> statement.getName().text(), epsClass));
+        environment.define(statement.getName().text(), Value.ofType(epsClass));
         return null;
     }
 
@@ -138,7 +137,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                         new Let(Value.of(environment.getType(s.getType())),
                         s.isMutable())));
         Struct tp = new Struct(statement.getName().text(), properties);
-        environment.define(statement.getName().text(), Value.of(() -> statement.getName().text(), tp));
+        environment.define(statement.getName().text(), Value.ofType(tp));
         return null;
     }
 
@@ -292,14 +291,15 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
     @Override
     public Value visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        return Value.ofFunc(expression.getStatement()
-                .createCallable(environment, environment.getValue(expression.getStatement().getReturnType()).getType()));
+        return Value.ofFunc(expression.getStatement().createCallable(environment,
+                        environment.getType(expression.getStatement().getReturnType())));
     }
 
     @Override
     public Value visitGetterExpression(GetterExpression expression) {
-        Value object = evaluate(expression.getValue());
-        if (object.get() instanceof Instance instance) {
+        Value value = evaluate(expression.getValue());
+
+        if (value.get() instanceof Instance instance) {
             return instance.get(expression.getName());
         }
         throw new InterpretRuntimeException(expression.getName(), "Only instances have properties.");
@@ -308,6 +308,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
     @Override
     public Value visitSetterExpression(SetterExpression expression) {
         Value object = evaluate(expression.getObject());
+
         if (object.get() instanceof Instance instance) {
             Value value = evaluate(expression.getValue());
             instance.set(expression.getName(), value);
@@ -326,7 +327,7 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                 attributions.put(is.getName().text(), evaluate(is.getValue()));
         });
 
-        if (environment.getValue(expression.getType()).getType() instanceof Struct struct) {
+        if (environment.getType(expression.getType()) instanceof Struct struct) {
             check(expression.getType(), struct, attributions);
             return Value.of(struct, new InstanceStruct(struct, attributions));
         }
@@ -354,19 +355,18 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         throw new InterpretRuntimeException(operator, "Operands must be numbers.");
     }
 
-    public String stringify(Value object) {
+    public String stringify(Value value) {
+        Object o = value.get();
+        if (o == null) return Syntax.Word.Null;
 
-        if (object.get() == null) return Syntax.Word.Null;
-
-        if (object.getType() instanceof NativeType.TNumber) {
-            String text_ = object.toString();
+        if (value.getType() instanceof NativeType.TNumber) {
+            String text_ = o.toString();
             if (text_.endsWith(".0")) {
                 text_ = text_.substring(0, text_.length() - 2);
             }
             return text_;
         }
-
-        return object.toString();
+        return o.toString();
     }
 
     public void resolve(Expression expr, int depth) {

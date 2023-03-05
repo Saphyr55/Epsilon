@@ -16,7 +16,7 @@ public class InstanceStruct implements Instance {
         this.struct = struct;
         this.properties = new HashMap<>();
         struct.getProperties().forEach((s, let) -> this.properties.put(s,
-                        new Let(Value.of(struct, properties.get(s)), let.isMutable())));
+                        new Let(Value.of(struct, properties.get(s).get()), let.isMutable())));
     }
 
     @Override

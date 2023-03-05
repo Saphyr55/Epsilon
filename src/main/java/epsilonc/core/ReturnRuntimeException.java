@@ -1,15 +1,17 @@
 package epsilonc.core;
 
+import epsilonc.object.Value;
+
 public class ReturnRuntimeException extends RuntimeException {
 
-    private final Object value;
+    private final Value value;
 
-    public ReturnRuntimeException(Object value) {
+    public ReturnRuntimeException(Value value) {
         super(null, null, false, false);
         this.value = value;
     }
 
-    public Object getValue() {
+    public Value getValue() {
         return value;
     }
 

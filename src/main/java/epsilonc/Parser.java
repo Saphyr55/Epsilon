@@ -350,10 +350,11 @@ public class Parser {
             Token equals = previous();
             Expression value = or();
 
-            if (expression instanceof LetExpression le)
+            if (expression instanceof LetExpression le){
                 return new AssignExpression(le.getName(), value);
-            else if (expression instanceof GetterExpression ge)
+            } else if (expression instanceof GetterExpression ge) {
                 return new SetterExpression(ge.getValue(), ge.getName(), value);
+            }
 
             throw report(equals, "Invalid assignment target.");
         }
@@ -476,7 +477,7 @@ public class Parser {
     private Expression primary() {
         if (match(Kind.FalseKw)) return new LiteralExpression(Value.ofFalse());
         if (match(Kind.TrueKw)) return new LiteralExpression(Value.ofTrue());
-        if (match(Kind.NullKw)) return new LiteralExpression(Value.ofNull());
+        if (match(Kind.NullKw)) return new LiteralExpression(Value.ofVoid());
         if (match(Kind.Number)) return new LiteralExpression(Value.ofNumber(previous().value()));
         if (match(Kind.String)) return new LiteralExpression(Value.ofString(previous().value()));
         if (match(Kind.Identifier)) {

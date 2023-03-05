@@ -13,14 +13,12 @@ import java.util.Map;
 
 public class Environment {
 
-    private final Map<String, Type> types;
     private final Map<String, Let> values;
     private final Environment enclosing;
 
     public Environment(Environment enclosing) {
         this.enclosing = enclosing;
         this.values = new HashMap<>();
-        this.types = new HashMap<>();
     }
 
     public Environment() {
@@ -33,8 +31,9 @@ public class Environment {
 
     public Value getValue(Token name) {
 
-        if (values.containsKey(name.text()))
+        if (values.containsKey(name.text())) {
             return values.get(name.text()).getValue();
+        }
 
         if (enclosing != null) return enclosing.getValue(name);
 
@@ -43,10 +42,6 @@ public class Environment {
 
     public void define(String name, Value value, boolean isMutable) {
         values.put(name, new Let(value, isMutable));
-    }
-
-    public void define(String name, Type type) {
-        types.put(name, type);
     }
 
     public void define(String name, Value value) {

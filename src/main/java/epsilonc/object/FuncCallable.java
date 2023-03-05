@@ -1,6 +1,7 @@
 package epsilonc.object;
 
 import epsilonc.Environment;
+import epsilonc.core.InterpretRuntimeException;
 import epsilonc.resolver.Interpreter;
 import epsilonc.core.ReturnRuntimeException;
 import epsilonc.statement.FunctionStatement;
@@ -24,20 +25,28 @@ public class FuncCallable implements Callable {
 
     @Override
     public Value call(Interpreter inter, List<Value> args) {
-        Environment environment = new Environment(closure);
-        List<Token> listTokenArgs = declaration.getParams().keySet().stream().toList();
-        List<Token> listTokenType = declaration.getParams().values().stream().toList();
+        var environment = new Environment(closure);
+        var listTokenArgs = declaration.getParams().keySet().stream().toList();
+        var listTokenType = declaration.getParams().values().stream().toList();
         for (int i = 0; i < declaration.getParams().size(); i++) {
-            environment.define(listTokenArgs.get(i).text(), Value.of(
-                            closure.getValue(listTokenType.get(i)).getType(),
-                            closure.getValue(listTokenType.get(i)).get()));
+
+            var tokenType = listTokenType.get(i);
+            var tokenArg = listTokenArgs.get(i);
+            var currentArg = args.get(declaration.getParams().size() - 1 - i);
+
+            if (!currentArg.getType().getClass().isInstance(closure.getType(tokenType)))
+                throw new InterpretRuntimeException(tokenArg, "Wrong type arguments for '" +
+                        tokenArg.text() + "', the expected type is '"+ tokenType.text() +
+                        "'. We actually got a '"+ currentArg.getType().name()+"'");
+
+            environment.define(listTokenArgs.get(i).text(), currentArg);
         }
         try {
             inter.executeBlock(declaration.getBody(), environment);
         } catch (ReturnRuntimeException returnValue) {
-            return Value.of(returnType, returnValue.getValue());
+            return Value.of(returnType, returnValue.getValue().get());
         }
-        return null;
+        return Value.of(returnType);
     }
 
     @Override
@@ -47,7 +56,7 @@ public class FuncCallable implements Callable {
 
     @Override
     public String toString() {
-        return "<func " + declaration.getName() + ">";
+        return "<func " + (declaration.getName() == null ? "anonymous function" : declaration.getName().text()) + ">";
     }
 
     public Environment getClosure() {

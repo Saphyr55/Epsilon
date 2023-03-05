@@ -1,5 +1,3 @@
-struct i32 { }
-
 class Window {
     let mut title: string;
     let mut width: i32;
@@ -33,12 +31,12 @@ struct Human {
     mut name: string;
 }
 
-let create_human: function = func (name: string) -> Human {
+func create_human (name: string) -> Human {
     return Human {
         hp = 30;
         name = name;
     };
-};
+}
 
 let human: Human = create_human("Slamy");
 

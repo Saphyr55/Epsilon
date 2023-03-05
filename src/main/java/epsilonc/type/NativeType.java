@@ -10,6 +10,7 @@ public class NativeType {
     public static final TBool Bool = new TBool();
     public static final TString String = new TString();
     public static final TVoid Void = new TVoid();
+    public static final TInt32 Int32 = new TInt32();
     public static final TUndefined Undefined = new TUndefined();
 
     public record TFunc() implements Type { public String name() {return "function"; }}
@@ -18,13 +19,15 @@ public class NativeType {
     public record TBool() implements Type { public String name() { return "bool"; } }
     public static class TNumber implements Type { public String name() { return "number"; } }
     public record TUndefined() implements Type { public String name() {return "undefined"; }}
+    public static class TInt32 extends TNumber { public String name() { return "i32"; }}
 
     public static void defineAllNativeTypes(Interpreter interpreter) {
-        interpreter.getGlobals().define(Func.name(), Value.of(Func, Func));
-        interpreter.getGlobals().define(Number.name(), Value.of(Number, Number));
-        interpreter.getGlobals().define(Bool.name(), Value.of(Bool, Bool));
-        interpreter.getGlobals().define(String.name(), Value.of(String, String));
-        interpreter.getGlobals().define(Void.name(), Value.of(Void, Void));
+        interpreter.getGlobals().define(Func.name(), Value.ofFunc(Func));
+        interpreter.getGlobals().define(Number.name(), Value.ofNumber(Number));
+        interpreter.getGlobals().define(Int32.name(), Value.ofType(Int32));
+        interpreter.getGlobals().define(Bool.name(), Value.ofBool(Bool));
+        interpreter.getGlobals().define(String.name(), Value.ofString(String));
+        interpreter.getGlobals().define(Void.name(), Value.ofVoid());
     }
 
 }
