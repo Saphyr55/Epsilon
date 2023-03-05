@@ -6,20 +6,16 @@ import java.util.List;
 
 public class NativeFunc implements Callable {
 
-    private final int arity;
+    private final Prototype prototype;
     private final Callable callable;
 
-    public NativeFunc(int arity, Callable callable) {
-        this.arity = arity;
+    public NativeFunc(Callable callable) {
+        this.prototype = callable.prototype();
         this.callable = callable;
     }
 
-    public static Value createValue(int arity, Callable callable) {
-        return Value.ofFunc(new NativeFunc(arity, callable));
-    }
-
     public static Value createValue(Callable callable) {
-        return Value.ofFunc(new NativeFunc(0, callable));
+        return Value.ofFunc(new NativeFunc(callable));
     }
 
     @Override
@@ -28,13 +24,8 @@ public class NativeFunc implements Callable {
     }
 
     @Override
-    public int arity() {
-        return arity;
-    }
-
-    @Override
-    public String toString() {
-        return "native function";
+    public Prototype prototype() {
+        return prototype;
     }
 
 

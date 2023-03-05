@@ -1,30 +1,41 @@
 package epsilon.core;
 
-import epsilon.object.NativeFunc;
+import epsilon.object.*;
 import epsilon.Environment;
-import epsilon.object.Value;
 import epsilon.resolver.Interpreter;
+import epsilon.type.NativeType;
+
+import java.util.List;
 
 public final class NativeFunction {
-
 
     public static void defineAll(Interpreter interpreter) {
         Environment globals = interpreter.getGlobals();
 
-        globals.define("random", NativeFunc.createValue((inter, args) -> Value.ofNumber(Math.random())));
+        globals.define("println", NativeFunc.createValue(new Callable() {
+            @Override
+            public Prototype prototype() {
+                return new Prototype("println", List.of(NativeType.Type));
+            }
 
-        globals.define("clock", NativeFunc.createValue((i, args) ->  Value.ofNumber((double) System.currentTimeMillis() / 1000.0)));
-
-        globals.define("to_type", NativeFunc.createValue(1, (inter, args) -> Value.ofString(args.get(0).toString())));
-
-        globals.define("println", NativeFunc.createValue(1, (i, args) ->{
-            System.out.println(i.stringify(args.get(0)));
-            return Value.ofVoid();
+            @Override
+            public Value call(Interpreter inter, List<Value> args) {
+                System.out.println(inter.stringify(args.get(0)));
+                return Value.ofVoid();
+            }
         }));
 
-        globals.define("print", NativeFunc.createValue(1, (i, args) -> {
-            System.out.print(i.stringify(args.get(0)));
-            return Value.ofVoid();
+        globals.define("print", NativeFunc.createValue(new Callable() {
+            @Override
+            public Prototype prototype() {
+                return new Prototype("print", List.of(NativeType.Type));
+            }
+
+            @Override
+            public Value call(Interpreter inter, List<Value> args) {
+                System.out.print(inter.stringify(args.get(0)));
+                return Value.ofVoid();
+            }
         }));
 
     }

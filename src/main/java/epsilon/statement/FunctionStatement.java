@@ -1,6 +1,7 @@
 package epsilon.statement;
 
 import epsilon.Environment;
+import epsilon.object.Prototype;
 import epsilon.object.Value;
 import epsilon.syntax.Token;
 import epsilon.object.FuncCallable;
@@ -15,12 +16,12 @@ public record FunctionStatement(Token name,
                                 List<Statement> body,
                                 Token returnType) implements Statement {
 
-    public FuncCallable createCallable(Environment environment, Type returnTypeDeclaration) {
-        return new FuncCallable(environment, this, returnTypeDeclaration);
+    public FuncCallable createCallable(Environment environment, Prototype prototype, Type returnTypeDeclaration) {
+        return new FuncCallable(environment, this, prototype, returnTypeDeclaration);
     }
 
     public Value createValue(Environment environment) {
-        paramsType().forEach(environment::getType);
+        var types_ = paramsType().stream().map(environment::getType).toList();
         Type returnType_ = NativeType.Void;
         if (returnType != null)
             returnType_ = environment.getType(returnType());
@@ -28,7 +29,9 @@ public record FunctionStatement(Token name,
         for (Statement stmt : body) {
             if (stmt instanceof ReturnStatement rs) rs.setFunctionStatement(this);
         }
-        return Value.ofFunc(createCallable(environment, returnType_));
+
+        return Value.ofFunc(createCallable(environment, new Prototype(
+                name == null ? null : name.text(), types_), returnType_));
     }
 
     @Override

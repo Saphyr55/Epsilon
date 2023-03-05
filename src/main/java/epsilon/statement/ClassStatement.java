@@ -10,12 +10,19 @@ public final class ClassStatement implements Statement {
     private final List<FunctionStatement> methods;
     private final List<FunctionStatement> staticFunctions;
     private final List<LetStatement> fields;
+    private final List<FunctionStatement> constructors;
 
     public ClassStatement(Token name, List<LetStatement> fields, List<FunctionStatement> methods, List<FunctionStatement> functions) {
         this.name = name;
         this.fields = fields;
         this.methods = methods;
         this.staticFunctions = functions;
+        this.constructors = methods.stream().filter(this::isConstructor).toList();
+        methods.removeIf(this::isConstructor);
+    }
+
+    private boolean isConstructor(FunctionStatement functionStatement) {
+        return functionStatement.name().text().equals(name.text());
     }
 
     @Override
@@ -39,4 +46,7 @@ public final class ClassStatement implements Statement {
         return staticFunctions;
     }
 
+    public List<FunctionStatement> getConstructors() {
+        return constructors;
+    }
 }

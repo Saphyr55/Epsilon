@@ -16,27 +16,29 @@ public class FuncCallable implements Callable {
     private final FunctionStatement declaration;
     private final Environment closure;
     private final Type returnType;
+    private final Prototype prototype;
 
-    public FuncCallable(Environment closure, FunctionStatement declaration, Type returnType) {
+    public FuncCallable(Environment closure, FunctionStatement declaration, Prototype prototype, Type returnType) {
         this.closure = closure;
         this.declaration = declaration;
         this.returnType = returnType;
+        this.prototype = prototype;
     }
 
     public FuncCallable bind(Value value) {
-        if (value.getType() instanceof EClass eClass) {
+        if (value.getType() instanceof EClass) {
             InstanceClass instance = (InstanceClass) value.get();
             Environment environment = new Environment(closure);
             List<String> ids = declaration.paramsId().stream().map(Token::text).toList();
 
             environment.define(Syntax.Word.This, value);
-
+            
             instance.getAttributes().forEach((s, let) -> {
                 if (!ids.contains(s))
                     environment.define(s, let.getValue());
             });
 
-            return new FuncCallable(environment, declaration, returnType);
+            return new FuncCallable(environment, declaration, prototype, returnType);
         }
         return this;
     }
@@ -66,8 +68,8 @@ public class FuncCallable implements Callable {
     }
 
     @Override
-    public int arity() {
-        return declaration.paramsId().size();
+    public Prototype prototype() {
+        return prototype;
     }
 
     @Override

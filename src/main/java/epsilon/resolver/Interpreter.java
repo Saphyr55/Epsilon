@@ -129,14 +129,21 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
                     s.mutable()));
         }
 
-        Map<String, FuncCallable> methods = new HashMap<>();
-        statement.getMethods().forEach(methodStmt -> methods.put(methodStmt.name().text(),
-                (FuncCallable) methodStmt.createValue(environment).get()));
+        Map<Prototype, FuncCallable> methods = new HashMap<>();
+        statement.getMethods().forEach(methodStmt -> {
+            var types = methodStmt.paramsType().stream().map(token -> environment.getType(token)).toList();
+            methods.put(new Prototype(methodStmt.name().text(), types),
+                    (FuncCallable) methodStmt.createValue(environment).get());
+        });
 
-        Map<String, FuncCallable> functions = new HashMap<>();
-        // statement.getStaticFunctions().forEach(this::visitFunctionStatement);
-
-        EClass epsClass = new EClass(statement.getName().text(), methods, functions, fields);
+        Map<Prototype, FuncCallable> constructors = new HashMap<>();
+        for (FunctionStatement constructor : statement.getConstructors()) {
+            var types = constructor.paramsType().stream().map(token -> environment.getType(token)).toList();
+            constructors.put(new Prototype(constructor.name().text(), types),
+                    (FuncCallable) constructor.createValue(environment).get());
+        }
+        
+        EClass epsClass = new EClass(statement.getName().text(), constructors, methods, fields);
         environment.assign(statement.getName(), Value.ofType(epsClass));
         return null;
     }
@@ -300,13 +307,23 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         List<Value> arguments = expression.getArguments().stream().toList()
                         .stream().map(this::evaluate).toList();
 
-        if (value.get() instanceof Callable callable) {
-            if (arguments.size() != callable.arity()) {
-                throw new InterpretRuntimeException(expression.getParen(), "Expected " +
-                        callable.arity() + " arguments but got " +
-                        arguments.size() + ".");
+        System.out.println(value);
+
+        if (value.get() instanceof List) {
+            List<Value> values = (List<Value>) value.get();
+            List<Callable> functions = values.stream().map(value1 -> (Callable) value1.get()).toList();
+            for (Callable function : functions) {
+                if (function.prototype().sameArgsT(arguments.stream().map(Value::getType).toList())) {
+                    return function.call(this, arguments);
+                }
             }
-            return callable.call(this, arguments);
+            throw new InterpretRuntimeException(expression.getParen(), "Function does not exist.");
+        }
+        if (value.get() instanceof Callable callable) {
+            if (callable.prototype().sameArgsT(arguments.stream().map(Value::getType).toList())) {
+                return callable.call(this, arguments);
+            }
+            throw new InterpretRuntimeException(expression.getParen(), "Function does not exist.");
         }
 
         throw new InterpretRuntimeException(expression.getParen(), "Can only call functions and classes.");

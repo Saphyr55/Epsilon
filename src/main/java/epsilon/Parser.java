@@ -16,7 +16,7 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
-    private List<Statement> statements;
+    private final List<Statement> statements;
 
     public static Parser createParser(String text) {
         return new Parser(new Lexer(text));
@@ -34,11 +34,11 @@ public class Parser {
 
     private Statement createDeclaration() {
         try {
-            if (match(Kind.Hash)) createHashStatement();
             if (match(Kind.ClassKw)) return createClassStatement();
             if (match(Kind.FuncKw)) return createFunction();
             if (match(Kind.LetKw)) return createLetDeclaration();
             if (match(Kind.StructKw)) return createStructStatement();
+            if (match(Kind.Hash)) return createHashStatement();
 
             return statement();
         } catch (ParseException e) {
@@ -49,18 +49,21 @@ public class Parser {
         }
     }
 
-    private void createHashStatement() throws IOException {
-        switch (advance().text()) {
-            case Syntax.Macro.Import -> {
-                if (match(Kind.String)) {
-                    Token s = previous();
-                    statements.addAll(
-                            ModuleManager.load(s.text().replaceAll("\"", ""))
-                    );
-                }
-            }
-            default -> throw report(peek(), "Expected a macro after a hash.");
+    private Statement createHashStatement() throws IOException {
+        String check;
+        if (match(Kind.Identifier)) {
+            check = previous().text();
+        } else {
+            throw report(previous(), "Expected identifier after hash.");
         }
+        return switch (check) {
+            case Syntax.Macro.Import -> {
+                Token s = consume(Kind.String, "Expected string module.");
+                statements.addAll(ModuleManager.parse(s.text().replaceAll("\"", "")));
+                yield new HashStatement();
+            }
+            default -> new HashStatement();
+        };
     }
 
     /**
@@ -84,9 +87,10 @@ public class Parser {
     /**
      * Create a class statement
      * utility:
-     * ->   method ::= "method" Identifier "(" parameters ")" block
+     * ->   method ::= "func" Identifier "(" parameters ")" block
+     *      constructor ::= "func" classname "(" parameters ")" block
      * rule:
-     * ->   class ::= "class" Identifier "{" (method* | let* | function*) "}"
+     * ->   class ::= "class" Identifier "{" (constructor* | method* | let* | function*) "}"
      *
      * @return class statement
      */
@@ -95,9 +99,9 @@ public class Parser {
         Token name = consume(Kind.Identifier, "Expected a name for declaring class.");
         consume(Kind.OpenBracket, "Expected '{' before class body.");
 
-        List<FunctionStatement> methods = new ArrayList<>();
-        List<FunctionStatement> functions = new ArrayList<>();
-        List<LetStatement> fields = new ArrayList<>();
+        List<FunctionStatement> methods = new LinkedList<>();
+        List<FunctionStatement> functions = new LinkedList<>();
+        List<LetStatement> fields = new LinkedList<>();
 
         while (!check(Kind.CloseBracket) && !isAtEnd()) {
 

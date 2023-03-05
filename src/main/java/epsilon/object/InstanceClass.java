@@ -2,15 +2,15 @@ package epsilon.object;
 
 import epsilon.syntax.Token;
 import epsilon.core.InterpretRuntimeException;
+import epsilon.type.NativeType;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class InstanceClass implements Instance {
 
     private final EClass eClass;
     private final Map<String, Let> attributes;
-    private final Map<String, FuncCallable> methods;
+    private final Map<Prototype, FuncCallable> methods;
 
     public InstanceClass(EClass eClass) {
         this.eClass = eClass;
@@ -32,23 +32,27 @@ public class InstanceClass implements Instance {
     }
 
     public Value get(Token name) {
-
         Let field = attributes.get(name.text());
+
         if (field != null) return field.getValue();
 
-        FuncCallable method = eClass.findMethod(name.text());
-        if (method != null) return Value.ofFunc(method.bind(Value.of(eClass, this)));
+        var methods = eClass.findMethods(name.text());
+        List<Value> values = new LinkedList<>();
+        if (!methods.isEmpty()) {
+            for (var entry : methods.entrySet()) {
+                values.add(Value.ofFunc(entry.getValue().bind(Value.of(eClass, this))));
+            }
+            return Value.of(NativeType.Void, values);
+        }
 
         throw new InterpretRuntimeException(name, "Undefined attribute '"+name.text()+"'.");
     }
 
-    public Value getMethod(String name) {
-        FuncCallable method = eClass.findMethod(name);
-        if (method != null) return Value.ofFunc(method.bind(Value.of(eClass, this)));
-        return Value.ofVoid();
+    public Value getMethod(Token name, List<Token> types) {
+        throw new InterpretRuntimeException(name, "Undefined function '"+name.text()+"'.");
     }
 
-    public Map<String, FuncCallable> getMethods() {
+    public Map<Prototype, FuncCallable> getMethods() {
         return methods;
     }
 

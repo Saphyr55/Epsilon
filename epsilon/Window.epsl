@@ -1,8 +1,18 @@
+#import "epsilon.Number"
+
 class Window {
 
     let mut title: string;
-    let mut width: i32;
-    let mut height: i32;
+    let mut width: number;
+    let mut height: number;
+
+    func Window () { }
+
+    func Window (title: string, width: number, height: number) {
+        this.title = title;
+        this.width = width;
+        this.height = height;
+    }
 
     func setTitle (title: string) {
        this.title = title;

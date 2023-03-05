@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface Callable {
 
-    Value call(Interpreter inter, List<Value> args);
+    Prototype prototype();
 
-    default int arity() { return 0; }
+    Value call(Interpreter inter, List<Value> args);
 
 }

@@ -3,6 +3,7 @@ package epsilon;
 import epsilon.core.AssignException;
 import epsilon.core.DeclarationException;
 import epsilon.core.InterpretRuntimeException;
+import epsilon.object.FuncCallable;
 import epsilon.object.Let;
 import epsilon.object.Value;
 import epsilon.syntax.Token;
@@ -10,16 +11,19 @@ import epsilon.type.NativeType;
 import epsilon.type.Type;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Environment {
 
     private final Map<String, Let> declarations;
+    private final Map<String, List<FuncCallable>> functions;
     private final Environment enclosing;
 
     public Environment(Environment enclosing) {
         this.enclosing = enclosing;
         this.declarations = new HashMap<>();
+        this.functions = new HashMap<>();
     }
 
     public Environment() {
