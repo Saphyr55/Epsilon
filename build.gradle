@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass = 'epsilonc.Epsilon'
+    mainClass = 'epsilon.Epsilon'
 }
 
 group 'epsilon'
