@@ -38,7 +38,7 @@ public class Environment {
 
         if (enclosing != null) return enclosing.getValue(name);
 
-        throw new DeclarationException(name, "Undefined variable '" + name.text() + "' on get value.");
+        throw new DeclarationException(name, "Undefined declaration '" + name.text() + "'.");
     }
 
     public void define(String name, Value value, boolean isMutable) {
@@ -98,4 +98,11 @@ public class Environment {
         return environment;
     }
 
+    public Map<String, Let> getDeclarations() {
+        return declarations;
+    }
+
+    public Environment getEnclosing() {
+        return enclosing;
+    }
 }

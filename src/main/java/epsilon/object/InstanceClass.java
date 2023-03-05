@@ -42,6 +42,12 @@ public class InstanceClass implements Instance {
         throw new InterpretRuntimeException(name, "Undefined attribute '"+name.text()+"'.");
     }
 
+    public Value getMethod(String name) {
+        FuncCallable method = eClass.findMethod(name);
+        if (method != null) return Value.ofFunc(method.bind(Value.of(eClass, this)));
+        return Value.ofVoid();
+    }
+
     public Map<String, FuncCallable> getMethods() {
         return methods;
     }

@@ -58,6 +58,7 @@ public class Lexer {
             case Symbol.PlusOp -> addToken(Kind.Plus);
             case Symbol.StartOp -> addToken(Kind.Star);
             case Symbol.SlashOp -> addSlashToken();
+            case Symbol.Hash -> addToken(Kind.Hash);
             case Symbol.BackslashN -> { line++; col = 0; }
             case Symbol.Space, Symbol.BackslashR, Symbol.BackslashT -> { }
             default -> addDefaultToken(s);

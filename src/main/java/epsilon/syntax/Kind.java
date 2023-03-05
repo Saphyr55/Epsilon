@@ -57,6 +57,6 @@ public enum Kind {
     LogicalOr,
     BreakKw,
     NamespaceKw,
-    StructKw,
+    StructKw, Hash,
 
 }

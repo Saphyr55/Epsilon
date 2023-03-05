@@ -38,14 +38,13 @@ public final class Syntax {
         public static final String Namespace = "namespace";
     }
 
-    public static final class Contextual {
-
-        public static final String Method = "method";
-
+    public static final class Macro {
+        public static final String Import = "import";
     }
 
     public final static class Symbol {
         public static final String Space = " ";
+        public static final String Hash = "#";
         public static final String Ampersand = "&";
         public static final String Pipeline = "|";
         public static final String BackslashN = "\n";

@@ -19,8 +19,10 @@ public class Epsilon {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         reader.readLine();
 
-        Parser parser = Parser.createParser(Files.readString(Path.of("epsilon/main.epsl"), StandardCharsets.UTF_8));
-        List<Statement> statements = parser.parse();
+        ModuleManager.add("epsilon.main", "epsilon/main.epsl");
+        ModuleManager.add("epsilon.module", "epsilon/module.epsl");
+
+        List<Statement> statements = ModuleManager.load("epsilon.main");
 
         Interpreter interpreter = new Interpreter();
 

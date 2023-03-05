@@ -143,13 +143,12 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
 
     @Override
     public Void visitStructStatement(StructStatement statement) {
+        environment.define(statement.name().text(), Value.ofVoid(), true);
         Map<String, Let> properties = new HashMap<>();
-        statement.properties().forEach(s -> properties.put(
-                        s.name().text(),
-                        new Let(Value.of(environment.getType(s.type())),
-                        s.mutable())));
+        statement.properties().forEach(s -> properties.put(s.name().text(),
+                new Let(Value.of(environment.getType(s.type())), s.mutable())));
         Struct tp = new Struct(statement.name().text(), properties);
-        environment.define(statement.name().text(), Value.ofType(tp));
+        environment.assign(statement.name(), Value.ofType(tp));
         return null;
     }
 

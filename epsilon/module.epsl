@@ -1,0 +1,19 @@
+class Window {
+
+    let mut title: string;
+    let mut width: i32;
+    let mut height: i32;
+
+    func setTitle (title: string) {
+       this.title = title;
+    }
+
+    func getTitle () -> string {
+        return title;
+    }
+
+    func print () -> void {
+        println("Window[title=" + this.getTitle() + ", width=" + width + ", height=" + height + "].");
+    }
+
+}

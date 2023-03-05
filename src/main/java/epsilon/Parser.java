@@ -6,14 +6,17 @@ import epsilon.object.Value;
 import epsilon.statement.*;
 import epsilon.syntax.Kind;
 import epsilon.syntax.Lexer;
+import epsilon.syntax.Syntax;
 import epsilon.syntax.Token;
 
+import java.io.IOException;
 import java.util.*;
 
 public class Parser {
 
     private final List<Token> tokens;
     private int current = 0;
+    private List<Statement> statements;
 
     public static Parser createParser(String text) {
         return new Parser(new Lexer(text));
@@ -21,16 +24,17 @@ public class Parser {
 
     public Parser(Lexer lexer) {
         this.tokens = lexer.scan();
+        this.statements = new ArrayList<>();
     }
 
     public List<Statement> parse() {
-        List<Statement> statements = new ArrayList<>();
         while (!isAtEnd()) statements.add(createDeclaration());
         return statements;
     }
 
     private Statement createDeclaration() {
         try {
+            if (match(Kind.Hash)) createHashStatement();
             if (match(Kind.ClassKw)) return createClassStatement();
             if (match(Kind.FuncKw)) return createFunction();
             if (match(Kind.LetKw)) return createLetDeclaration();
@@ -40,6 +44,22 @@ public class Parser {
         } catch (ParseException e) {
             synchronize();
             return null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void createHashStatement() throws IOException {
+        switch (advance().text()) {
+            case Syntax.Macro.Import -> {
+                if (match(Kind.String)) {
+                    Token s = previous();
+                    statements.addAll(
+                            ModuleManager.load(s.text().replaceAll("\"", ""))
+                    );
+                }
+            }
+            default -> throw report(peek(), "Expected a macro after a hash.");
         }
     }
 
@@ -498,7 +518,7 @@ public class Parser {
         while (!isAtEnd()) {
             if (previous().kind() == Kind.Semicolon) return;
             switch (peek().kind()) {
-                case ClassKw, FuncKw, LetKw, ForKw,
+                case ClassKw, FuncKw, LetKw, ForKw, Hash, NamespaceKw,
                         IfKw, MutKw, WhileKw, StructKw, ReturnKw ->
                 { return; }
             }

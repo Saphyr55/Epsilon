@@ -24,14 +24,18 @@ public class FuncCallable implements Callable {
     }
 
     public FuncCallable bind(Value value) {
-        if (value.getType() instanceof EClass) {
+        if (value.getType() instanceof EClass eClass) {
             InstanceClass instance = (InstanceClass) value.get();
             Environment environment = new Environment(closure);
             List<String> ids = declaration.paramsId().stream().map(Token::text).toList();
+
             environment.define(Syntax.Word.This, value);
+
             instance.getAttributes().forEach((s, let) -> {
-                if (!ids.contains(s)) environment.define(s, let.getValue());
+                if (!ids.contains(s))
+                    environment.define(s, let.getValue());
             });
+
             return new FuncCallable(environment, declaration, returnType);
         }
         return this;

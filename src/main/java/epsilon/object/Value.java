@@ -5,17 +5,13 @@ import epsilon.type.Type;
 
 public class Value {
 
-    private Type type;
-    private Object value;
+    private final Type type;
+    private final Object value;
 
     public Value(Type type, Object value) {
         if (value instanceof Value) throw new RuntimeException();
         this.type = type;
         this.value = value;
-    }
-
-    public Value move() {
-        return new Value(type, value);
     }
 
     public static Value of(Type type, Object value) {
