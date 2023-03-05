@@ -2,22 +2,24 @@ class Window {
     let mut title: string;
     let mut width: i32;
     let mut height: i32;
+
+
 }
 
-let create_window: function = func (title: string, height: i32, width: i32) -> Window {
-       let w: Window = Window();
-       w.height = height;
-       w.title = title;
-       w.width = width;
-       return w;
+let create_window = func (title: string, height: i32, width: i32) -> Window {
+        let w = Window();
+        w.height = height;
+        w.title = title;
+        w.width = width;
+        return w;
 };
 
-let window: Window = create_window("Title", 100, 100);
+let window = create_window("Title", 100, 100);
 
-let window2: Window = Window();
+let window2 = Window();
 window2.height = 300;
 window2.width = 400;
-window2.title = "Title";
+window2.title = "Title M";
 
 println(window.title);
 
@@ -38,9 +40,10 @@ func create_human (name: string) -> Human {
     };
 }
 
-let human: Human = create_human("Slamy");
+let human = create_human("Slamy");
 
 println(human.name);
 
+println(create_window);
 
 
