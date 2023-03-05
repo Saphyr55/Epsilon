@@ -19,38 +19,32 @@ func create_slime (name: string) -> Slime {
     };
 }
 
-let create_window = func (title: string, height: number, width: number) -> Window {
-        let w = Window();
-        w.height = height;
-        w.title = title;
-        w.width = width;
-        return w;
-};
-
-let window: Window = create_window("Title", 100, 100);
-
-let window2 = Window();
-window2.height = 300;
-window2.width = 400;
-window2.title = "Title 2";
-
-window.setTitle("Title 1");
-
-window.print();
-
-let get_title = window.title;
-
-println(get_title);
-
-window.title = "Title 0";
-
-println(get_title + " " + window.getTitle());
-
-let slime = create_slime("Gerald");
-
 func main() -> void {
 
+    let create_window = func (title: string, height: number, width: number) -> Window {
+        return Window(title, height, width);
+    };
 
+    let window: Window = create_window("Title", 100, 100);
+
+    let window2 = Window();
+    window2.height = 300;
+    window2.width = 400;
+    window2.title = "Title 2";
+
+    window.setTitle("Title 1");
+
+    window.print();
+
+    let get_title = window.title;
+
+    println(get_title);
+
+    window.title = "Title 0";
+
+    println(get_title + " " + window.getTitle());
+
+    let slime = create_slime("Gerald");
 
 }
 

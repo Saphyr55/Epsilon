@@ -307,23 +307,33 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
         List<Value> arguments = expression.getArguments().stream().toList()
                         .stream().map(this::evaluate).toList();
 
-        System.out.println(value);
-
         if (value.get() instanceof List) {
-            List<Value> values = (List<Value>) value.get();
-            List<Callable> functions = values.stream().map(value1 -> (Callable) value1.get()).toList();
-            for (Callable function : functions) {
-                if (function.prototype().sameArgsT(arguments.stream().map(Value::getType).toList())) {
-                    return function.call(this, arguments);
-                }
+            var values = (List<Value>) value.get();
+            var callables = values.stream().map(value1 -> (Callable) value1.get()).toList();
+            for (final var callable : callables) {
+                if (callable.prototype().isInstanceTypes(arguments.stream().map(Value::getType).toList()))
+                    return callable.call(this, arguments);
             }
             throw new InterpretRuntimeException(expression.getParen(), "Function does not exist.");
         }
+        if (value.get() instanceof EClass eClass) {
+            for (final var callable : eClass.getConstructors().values()) {
+                var l = arguments.stream().map(Value::getType).toList();
+                if (callable.prototype().isInstanceTypes(l))
+                    return eClass.call(this, arguments);
+            }
+            throw new InterpretRuntimeException(expression.getParen(),
+                    "'"+ eClass.prototype().getName() + "' not found.");
+        }
         if (value.get() instanceof Callable callable) {
-            if (callable.prototype().sameArgsT(arguments.stream().map(Value::getType).toList())) {
+
+            var l = arguments.stream().map(Value::getType).toList();
+            if (callable.prototype().isInstanceTypes(l)) {
                 return callable.call(this, arguments);
             }
-            throw new InterpretRuntimeException(expression.getParen(), "Function does not exist.");
+
+            throw new InterpretRuntimeException(expression.getParen(),
+                    "'"+ callable.prototype().getName() + "' not found.");
         }
 
         throw new InterpretRuntimeException(expression.getParen(), "Can only call functions and classes.");
@@ -348,7 +358,6 @@ public class Interpreter implements ExpressionVisitor<Value>, StatementVisitor<V
     @Override
     public Value visitSetterExpression(Expression.Setter expression) {
         Value object = evaluate(expression.object());
-
         if (object.get() instanceof Instance instance) {
             Value value = evaluate(expression.value());
             Type oldType = instance.get(expression.name()).getType();

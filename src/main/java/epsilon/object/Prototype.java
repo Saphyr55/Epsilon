@@ -14,6 +14,11 @@ public class Prototype {
         this.types = types;
     }
 
+    public Prototype(String name, Type... types) {
+        this.name = name;
+        this.types = List.of(types);
+    }
+
     public String getName() {
         return name;
     }
@@ -31,6 +36,7 @@ public class Prototype {
     }
 
     public boolean sameArgs(List<String> types) {
+        if (this.types.size() != types.size()) return false;
         for (int i = 0; i < types.size(); i++) {
             if (!types.get(i).equals(this.types.get(i).name()))
                 return false;
@@ -39,6 +45,7 @@ public class Prototype {
     }
 
     public boolean sameArgsT(List<Type> types) {
+        if (this.types.size() != types.size()) return false;
         for (int i = 0; i < types.size(); i++) {
             if (!types.get(i).name().equals(this.types.get(i).name()))
                 return false;
@@ -46,4 +53,20 @@ public class Prototype {
         return true;
     }
 
+    public boolean isInstanceTypes(List<Type> types) {
+        if (this.types.size() != types.size()) return false;
+        for (int i = 0; i < types.size(); i++) {
+            if (!this.types.get(i).isInstance(types.get(i)))
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Prototype{" +
+                "name='" + name + '\'' +
+                ", types=" + types +
+                '}';
+    }
 }

@@ -6,8 +6,8 @@ class Window {
     let mut width: number;
     let mut height: number;
 
-    func Window () { }
-
+    func Window() { }
+    
     func Window (title: string, width: number, height: number) {
         this.title = title;
         this.width = width;

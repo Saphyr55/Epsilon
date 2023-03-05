@@ -1,6 +1,10 @@
 package epsilon.object;
 
+import epsilon.Environment;
+import epsilon.core.InterpretRuntimeException;
 import epsilon.resolver.Interpreter;
+import epsilon.syntax.Syntax;
+import epsilon.syntax.Token;
 import epsilon.type.Type;
 
 import java.util.HashMap;
@@ -27,15 +31,21 @@ public class EClass implements Callable, Type {
 
     @Override
     public Prototype prototype() {
-        return (Prototype) constructors.keySet().toArray()[0];
+        return null;
     }
+
 
     @Override
     public Value call(Interpreter inter, List<Value> args) {
         InstanceClass instance = new InstanceClass(this);
         var typesArgs = args.stream().map(Value::getType).toList();
-
-        return Value.of(this, instance);
+        for (var entry : constructors.entrySet()) {
+            if (entry.getKey().isInstanceTypes(typesArgs)) {
+                var func = entry.getValue();
+                return Value.of(this, instance);
+            }
+        }
+        return Value.ofVoid();
     }
 
     public Let findFields(String name) {

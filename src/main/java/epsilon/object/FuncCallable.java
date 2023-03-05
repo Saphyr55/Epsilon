@@ -26,13 +26,12 @@ public class FuncCallable implements Callable {
     }
 
     public FuncCallable bind(Value value) {
-        if (value.getType() instanceof EClass) {
-            InstanceClass instance = (InstanceClass) value.get();
+        if (value.get() instanceof InstanceClass instance) {
             Environment environment = new Environment(closure);
             List<String> ids = declaration.paramsId().stream().map(Token::text).toList();
 
             environment.define(Syntax.Word.This, value);
-            
+
             instance.getAttributes().forEach((s, let) -> {
                 if (!ids.contains(s))
                     environment.define(s, let.getValue());
@@ -45,6 +44,7 @@ public class FuncCallable implements Callable {
 
     @Override
     public Value call(Interpreter inter, List<Value> args) {
+
         var environment = new Environment(closure);
         var listTokenArgs = declaration.paramsId();
         var listTokenType = declaration.paramsType();
@@ -53,11 +53,14 @@ public class FuncCallable implements Callable {
             var tokenType = listTokenType.get(i);
             var tokenArg = listTokenArgs.get(i);
             var currentArg = args.get(i);
+
             if (!currentArg.getType().isInstance(closure.getType(tokenType)))
                 throw new InterpretRuntimeException(tokenArg, "Wrong type arguments for '" +
                         tokenArg.text() + "', the expected type is '"+ tokenType.text() +
                         "'. We actually got a '"+ currentArg.getType().name()+"'");
+
             environment.define(listTokenArgs.get(i).text(), currentArg);
+
         }
         try {
             inter.executeBlock(declaration.body(), environment);
@@ -85,4 +88,11 @@ public class FuncCallable implements Callable {
         return returnType;
     }
 
+    public Prototype getPrototype() {
+        return prototype;
+    }
+
+    public FunctionStatement getDeclaration() {
+        return declaration;
+    }
 }
