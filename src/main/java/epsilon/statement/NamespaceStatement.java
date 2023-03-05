@@ -4,23 +4,7 @@ import epsilon.syntax.Token;
 
 import java.util.List;
 
-public class NamespaceStatement implements Statement {
-
-    private final Token name;
-    private final List<Statement> statements;
-
-    public NamespaceStatement(Token name, List<Statement> statements) {
-        this.name = name;
-        this.statements = statements;
-    }
-
-    public List<Statement> getStatements() {
-        return statements;
-    }
-
-    public Token getName() {
-        return name;
-    }
+public record NamespaceStatement(Token name, List<Statement> statements) implements Statement {
 
     @Override
     public <R> R accept(StatementVisitor<R> visitor) {

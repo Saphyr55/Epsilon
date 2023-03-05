@@ -3,6 +3,13 @@ class Window {
     let mut width: i32;
     let mut height: i32;
 
+    func setTitle (title: string) -> void {
+       this.title = title;
+    }
+
+    func getTitle () -> string {
+        return title;
+    }
 
 }
 
@@ -19,14 +26,20 @@ let window = create_window("Title", 100, 100);
 let window2 = Window();
 window2.height = 300;
 window2.width = 400;
-window2.title = "Title M";
+window2.title = "Title 2";
 
-println(window.title);
+window.setTitle("Title 1");
 
-window.title = "Title 'By let' Changed";
-
-println(window.title);
+println(window.getTitle());
 println(window2.title);
+
+let get_title = window.title;
+
+println(get_title);
+
+window.title = "Title 0";
+
+println(get_title + " " + window.getTitle());
 
 struct Human {
     mut hp: i32;
@@ -35,15 +48,12 @@ struct Human {
 
 func create_human (name: string) -> Human {
     return Human {
-        hp = 30;
+        hp = 50;
         name = name;
     };
 }
 
 let human = create_human("Slamy");
 
-println(human.name);
-
-println(create_window);
 
 

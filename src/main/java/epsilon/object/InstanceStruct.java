@@ -9,14 +9,14 @@ import java.util.Map;
 
 public class InstanceStruct implements Instance {
 
-    private Struct struct;
+    private final Struct struct;
     private final Map<String, Let> properties;
 
     public InstanceStruct(Struct struct, Map<String, Value> properties) {
         this.struct = struct;
         this.properties = new HashMap<>();
         struct.getProperties().forEach((s, let) -> this.properties.put(s,
-                        new Let(Value.of(struct, properties.get(s).get()), let.isMutable())));
+                new Let(properties.get(s), let.isMutable())));
     }
 
     @Override
@@ -34,8 +34,8 @@ public class InstanceStruct implements Instance {
 
     @Override
     public Value get(Token name) {
-        Let field = properties.get(name.text());
-        if (field != null) return field.getValue();
+        Let property = properties.get(name.text());
+        if (property != null) return property.getValue();
         throw new InterpretRuntimeException(name, "Undefined property '"+name.text()+"'.");
     }
 
@@ -43,19 +43,11 @@ public class InstanceStruct implements Instance {
         return properties;
     }
 
-    public Struct getStruct() {
-        return struct;
-    }
-
-    public void getStruct(Struct struct) {
-        this.struct = struct;
-    }
-
     @Override
     public String toString() {
-        return super.toString()+" {\n" +
-                "\ttype=" + struct.getName() +
-                ",\n\tproperties={" + PrettyPrintingMap.pretty(properties) +
-                "}\n}";
+        return super.toString()+" {" +
+                "type=" + struct.getName() +
+                ",properties={" + PrettyPrintingMap.pretty(properties) +
+                "}}";
     }
 }

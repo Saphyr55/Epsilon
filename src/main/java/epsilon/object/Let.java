@@ -32,7 +32,7 @@ public class Let {
     public String toString() {
         return "Let{" +
                 "value=" + value.get() +
-                "type=" + getType() +
+                ", type=" + getType() +
                 ", isMutable=" + isMutable +
                 '}';
     }

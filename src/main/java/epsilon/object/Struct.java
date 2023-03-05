@@ -25,10 +25,10 @@ public class Struct implements Type {
 
     @Override
     public String toString() {
-        return super.toString()+"{\n" +
-                "\tname='" + name + "'" +
-                ",\n\tproperties=" + PrettyPrintingMap.pretty(properties) +
-                "\t}";
+        return super.toString()+"{" +
+                "name='" + name + "'" +
+                ", properties=" + properties +
+                "}";
     }
 
     @Override

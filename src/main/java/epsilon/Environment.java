@@ -85,7 +85,9 @@ public class Environment {
     };
 
     public Value getAt(Integer distance, String text) {
-        return ancestor(distance).declarations.get(text).getValue();
+        var declaration = ancestor(distance).declarations.get(text);
+        if (declaration == null) throw new NullPointerException();
+        return declaration.getValue();
     }
 
     Environment ancestor(int distance) {

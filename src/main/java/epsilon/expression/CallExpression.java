@@ -4,13 +4,15 @@ import epsilon.syntax.Token;
 
 import java.util.List;
 
-public class CallExpression implements Expression {
+public final class CallExpression implements Expression {
 
-    private Expression callee;
-    private Token paren;
-    private List<Expression> arguments;
+    private final Expression callee;
+    private final Token paren;
+    private final List<Expression> arguments;
 
-    public CallExpression(Expression callee, Token paren, List<Expression> arguments) {
+    public CallExpression(final Expression callee,
+                          final Token paren,
+                          final List<Expression> arguments) {
         this.callee = callee;
         this.paren = paren;
         this.arguments = arguments;
@@ -32,4 +34,6 @@ public class CallExpression implements Expression {
     public List<Expression> getArguments() {
         return arguments;
     }
+
+
 }

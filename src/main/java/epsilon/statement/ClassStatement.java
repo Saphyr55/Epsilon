@@ -4,7 +4,7 @@ import epsilon.syntax.Token;
 
 import java.util.List;
 
-public class ClassStatement implements Statement {
+public final class ClassStatement implements Statement {
 
     private final Token name;
     private final List<FunctionStatement> methods;

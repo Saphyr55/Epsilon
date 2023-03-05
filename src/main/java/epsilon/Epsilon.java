@@ -15,14 +15,18 @@ import java.util.List;
 public class Epsilon {
 
     public static void main(String[] args) throws IOException {
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         reader.readLine();
-        
-        Interpreter interpreter = new Interpreter();
+
         Parser parser = Parser.createParser(Files.readString(Path.of("epsilon/main.epsl"), StandardCharsets.UTF_8));
         List<Statement> statements = parser.parse();
+
+        Interpreter interpreter = new Interpreter();
+
         ScopeResolver scopeResolver = new ScopeResolver(interpreter);
         scopeResolver.resolve(statements);
+
         System.out.println("Interpreting :");
         interpreter.interpret(statements);
     }

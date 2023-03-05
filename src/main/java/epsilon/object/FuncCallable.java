@@ -5,6 +5,8 @@ import epsilon.core.InterpretRuntimeException;
 import epsilon.resolver.Interpreter;
 import epsilon.core.ReturnRuntimeException;
 import epsilon.statement.FunctionStatement;
+import epsilon.syntax.Syntax;
+import epsilon.syntax.Token;
 import epsilon.type.Type;
 
 import java.util.List;
@@ -21,12 +23,26 @@ public class FuncCallable implements Callable {
         this.returnType = returnType;
     }
 
+    public FuncCallable bind(Value value) {
+        if (value.getType() instanceof EClass) {
+            InstanceClass instance = (InstanceClass) value.get();
+            Environment environment = new Environment(closure);
+            List<String> ids = declaration.paramsId().stream().map(Token::text).toList();
+            environment.define(Syntax.Word.This, value);
+            instance.getAttributes().forEach((s, let) -> {
+                if (!ids.contains(s)) environment.define(s, let.getValue());
+            });
+            return new FuncCallable(environment, declaration, returnType);
+        }
+        return this;
+    }
+
     @Override
     public Value call(Interpreter inter, List<Value> args) {
         var environment = new Environment(closure);
-        var listTokenArgs = declaration.getParamsId();
-        var listTokenType = declaration.getParamsType();
-        for (int i = 0; i < declaration.getParamsId().size(); i++) {
+        var listTokenArgs = declaration.paramsId();
+        var listTokenType = declaration.paramsType();
+        for (int i = 0; i < declaration.paramsId().size(); i++) {
 
             var tokenType = listTokenType.get(i);
             var tokenArg = listTokenArgs.get(i);
@@ -38,7 +54,7 @@ public class FuncCallable implements Callable {
             environment.define(listTokenArgs.get(i).text(), currentArg);
         }
         try {
-            inter.executeBlock(declaration.getBody(), environment);
+            inter.executeBlock(declaration.body(), environment);
         } catch (ReturnRuntimeException returnValue) {
             return Value.of(returnValue.getValue().getType(), returnValue.getValue().get());
         }
@@ -47,12 +63,12 @@ public class FuncCallable implements Callable {
 
     @Override
     public int arity() {
-        return declaration.getParamsId().size();
+        return declaration.paramsId().size();
     }
 
     @Override
     public String toString() {
-        return "<func " + (declaration.getName() == null ? "anonymous function" : declaration.getName().text()) + ">";
+        return "<func " + (declaration.name() == null ? "anonymous function" : declaration.name().text()) + ">";
     }
 
     public Environment getClosure() {

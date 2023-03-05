@@ -9,19 +9,19 @@ import java.util.Map;
 public class InstanceClass implements Instance {
 
     private final EClass eClass;
-    private final Map<String, Let> properties;
+    private final Map<String, Let> attributes;
     private final Map<String, FuncCallable> methods;
 
     public InstanceClass(EClass eClass) {
         this.eClass = eClass;
-        this.properties = new HashMap<>();
-        eClass.getFields().forEach((s, let) -> properties.put(s, new Let(let.getValue(), let.isMutable())));
+        this.attributes = new HashMap<>();
+        eClass.getFields().forEach((s, let) -> attributes.put(s, new Let(let.getValue(), let.isMutable())));
         this.methods = new HashMap<>(eClass.getMethods());
     }
 
     public void set(Token name, Value value) {
 
-        Let let = properties.get(name.text());
+        Let let = attributes.get(name.text());
         if (let == null)
             throw new InterpretRuntimeException(name, "Undefined attribute '"+name.text()+"'.");
 
@@ -33,12 +33,20 @@ public class InstanceClass implements Instance {
 
     public Value get(Token name) {
 
-        Let field = properties.get(name.text());
+        Let field = attributes.get(name.text());
         if (field != null) return field.getValue();
 
-        FuncCallable method = methods.get(name.text());
-        if (method != null) return Value.ofFunc(method);
+        FuncCallable method = eClass.findMethod(name.text());
+        if (method != null) return Value.ofFunc(method.bind(Value.of(eClass, this)));
 
         throw new InterpretRuntimeException(name, "Undefined attribute '"+name.text()+"'.");
+    }
+
+    public Map<String, FuncCallable> getMethods() {
+        return methods;
+    }
+
+    public Map<String, Let> getAttributes() {
+        return attributes;
     }
 }

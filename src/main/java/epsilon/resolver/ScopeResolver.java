@@ -1,5 +1,7 @@
 package epsilon.resolver;
 
+import epsilon.core.ClassType;
+import epsilon.syntax.Syntax;
 import epsilon.syntax.Token;
 import epsilon.core.FunctionType;
 import epsilon.core.ResolverRuntimeException;
@@ -15,6 +17,7 @@ public class ScopeResolver implements Resolver<Void, Void> {
     private FunctionType currentFunction = FunctionType.None;
     private final Interpreter interpreter;
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+    private ClassType currentClass = ClassType.NONE;
 
     public ScopeResolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -22,15 +25,15 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitBinaryExpression(BinaryExpression expression) {
-        resolve(expression.getLeft());
-        resolve(expression.getRight());
+    public Void visitBinaryExpression(Expression.Binary expression) {
+        resolve(expression.left());
+        resolve(expression.right());
         return null;
     }
 
     @Override
-    public Void visitGroupingExpression(GroupingExpression expression) {
-        resolve(expression.getExpression());
+    public Void visitGroupingExpression(Expression.Grouping expression) {
+        resolve(expression.expression());
         return null;
     }
 
@@ -40,17 +43,17 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitUnaryExpression(UnaryExpression expression) {
-        resolve(expression.getRight());
+    public Void visitUnaryExpression(Expression.Unary expression) {
+        resolve(expression.right());
         return null;
     }
 
     @Override
-    public Void visitLetExpression(LetExpression expression) {
-        if (!scopes.isEmpty() && scopes.peek().get(expression.getName().text()) == Boolean.FALSE) {
-            throw new ResolverRuntimeException(expression.getName(), "Can't read local variable in its own initializer.");
+    public Void visitLetExpression(Expression.Let expression) {
+        if (!scopes.isEmpty() && scopes.peek().get(expression.name().text()) == Boolean.FALSE) {
+            throw new ResolverRuntimeException(expression.name(), "Can't read local variable in its own initializer.");
         }
-        resolveLocal(expression, expression.getName());
+        resolveLocal(expression, expression.name());
         return null;
     }
 
@@ -62,9 +65,9 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitLogicalExpression(LogicalExpression expression) {
-        resolve(expression.getLeft());
-        resolve(expression.getRight());
+    public Void visitLogicalExpression(Expression.Logical expression) {
+        resolve(expression.left());
+        resolve(expression.right());
         return null;
     }
 
@@ -76,8 +79,8 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitAnonymousFuncExpression(AnonymousFuncExpression expression) {
-        resolveFunction(expression.getStatement(), FunctionType.Anonymous);
+    public Void visitAnonymousFuncExpression(Expression.AnonymousFunc expression) {
+        resolveFunction(expression.statement(), FunctionType.Anonymous);
         return null;
     }
 
@@ -88,9 +91,9 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
-    public Void visitSetterExpression(SetterExpression expression) {
-        resolve(expression.getValue());
-        resolve(expression.getObject());
+    public Void visitSetterExpression(Expression.Setter expression) {
+        resolve(expression.value());
+        resolve(expression.object());
         return null;
     }
 
@@ -101,8 +104,18 @@ public class ScopeResolver implements Resolver<Void, Void> {
     }
 
     @Override
+    public Void visitThisExpression(Expression.This aThis) {
+        if (currentClass == ClassType.NONE) {
+            throw new ResolverRuntimeException(aThis.kw(),
+                    "Can't use 'this' outside of a class.");
+        }
+        resolveLocal(aThis, aThis.kw());
+        return null;
+    }
+
+    @Override
     public Void visitExpressionStatement(ExpressionStatement statement) {
-        resolve(statement.getExpression());
+        resolve(statement.expression());
         return null;
     }
 
@@ -118,65 +131,75 @@ public class ScopeResolver implements Resolver<Void, Void> {
 
     @Override
     public Void visitLetStatement(LetStatement statement) {
-        declare(statement.getName());
-        if (statement.getInitializer() != null)
-            resolve(statement.getInitializer());
-        define(statement.getName());
+        declare(statement.name());
+        if (statement.initializer() != null)
+            resolve(statement.initializer());
+        define(statement.name());
         return null;
     }
 
     @Override
     public Void visitBlockStatement(BlockStatement statement) {
         beginScope();
-        resolve(statement.getStatements());
+        resolve(statement.statements());
         endScope();
         return null;
     }
 
     @Override
     public Void visitIfStatement(IfStatement statement) {
-        resolve(statement.getCondition());
-        resolve(statement.getThenBranch());
-        if (statement.getElseBranch() != null) resolve(statement.getElseBranch());
+        resolve(statement.condition());
+        resolve(statement.thenBranch());
+        if (statement.elseBranch() != null) resolve(statement.elseBranch());
         return null;
     }
 
     @Override
     public Void visitWhileStatement(WhileStatement statement) {
-        resolve(statement.getCondition());
-        resolve(statement.getBody());
+        resolve(statement.condition());
+        resolve(statement.body());
         return null;
     }
 
     @Override
     public Void visitFunctionStatement(FunctionStatement statement) {
-        declare(statement.getName());
-        define(statement.getName());
+        declare(statement.name());
+        define(statement.name());
         resolveFunction(statement, FunctionType.Function);
         return null;
     }
 
     @Override
     public Void visitClassStatement(ClassStatement statement) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
         declare(statement.getName());
         define(statement.getName());
+        // resolve(statement.getStaticFunctions());
+        beginScope();
+        scopes.peek().put(Syntax.Word.This, true);
         resolve(statement.getFields());
-        resolve(statement.getStaticFunctions());
-        resolve(statement.getMethods());
+        for (FunctionStatement method : statement.getMethods()) {
+            resolveFunction(method, FunctionType.Method);
+        }
+        endScope();
+        currentClass = enclosingClass;
         return null;
     }
 
     @Override
     public Void visitStructStatement(StructStatement statement) {
-        declare(statement.getName());
-        define(statement.getName());
-        resolve(statement.getProperties());
+        declare(statement.name());
+        define(statement.name());
+        beginScope();
+        resolve(statement.properties());
+        endScope();
         return null;
     }
 
     @Override
     public Void visitInitStatement(InitStatement statement) {
-        resolve(statement.getValue());
+        resolve(statement.value());
         return null;
     }
 
@@ -217,11 +240,11 @@ public class ScopeResolver implements Resolver<Void, Void> {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
         beginScope();
-        for (var param : statement.getParamsId()) {
+        for (var param : statement.paramsId()) {
             declare(param);
             define(param);
         }
-        resolve(statement.getBody());
+        resolve(statement.body());
         endScope();
         currentFunction = enclosingFunction;
     }

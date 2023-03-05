@@ -81,8 +81,9 @@ public class Parser {
 
         while (!check(Kind.CloseBracket) && !isAtEnd()) {
 
-            if (match(Kind.FuncKw))
+            if (match(Kind.FuncKw)) {
                 methods.add(createFunction());
+            }
             else if (match(Kind.LetKw))
                 fields.add((LetStatement) createLetDeclaration());
             else throw report(peek(), "Don't authorized this syntax in class");
@@ -347,10 +348,10 @@ public class Parser {
             Token equals = previous();
             Expression value = or();
 
-            if (expression instanceof LetExpression le) {
-                return new AssignExpression(le.getName(), value);
+            if (expression instanceof Expression.Let le) {
+                return new AssignExpression(le.name(), value);
             } else if (expression instanceof GetterExpression ge) {
-                return new SetterExpression(ge.getObject(), ge.getName(), value);
+                return new Expression.Setter(ge.getObject(), ge.getName(), value);
             }
 
             throw report(equals, "Invalid assignment target.");
@@ -365,7 +366,7 @@ public class Parser {
         while (match(Kind.LogicalOr)) {
             Token operator = previous();
             Expression right = and();
-            expression = new LogicalExpression(expression, operator, right);
+            expression = new Expression.Logical(expression, operator, right);
         }
         return expression;
     }
@@ -376,7 +377,7 @@ public class Parser {
         while (match(Kind.LogicalAnd)) {
             Token operator = previous();
             Expression right = equality();
-            expression = new LogicalExpression(expression, operator, right);
+            expression = new Expression.Logical(expression, operator, right);
         }
         return expression;
     }
@@ -388,7 +389,7 @@ public class Parser {
         while (match(Kind.NotEqual, Kind.Equal)) {
             Token operator = previous();
             Expression right = comparison();
-            expr = new BinaryExpression(expr, operator, right);
+            expr = new Expression.Binary(expr, operator, right);
         }
 
         return expr;
@@ -400,7 +401,7 @@ public class Parser {
         while (match(Kind.Greater, Kind.GreaterEqual, Kind.Less, Kind.LessEqual)) {
             Token operator = previous();
             Expression right = term();
-            expr = new BinaryExpression(expr, operator, right);
+            expr = new Expression.Binary(expr, operator, right);
         }
 
         return expr;
@@ -412,7 +413,7 @@ public class Parser {
         while (match(Kind.Minus, Kind.Plus)) {
             Token operator = previous();
             Expression right = factor();
-            expr = new BinaryExpression(expr, operator, right);
+            expr = new Expression.Binary(expr, operator, right);
         }
 
         return expr;
@@ -424,7 +425,7 @@ public class Parser {
         while (match(Kind.Slash, Kind.Star)) {
             Token operator = previous();
             Expression right = unary();
-            expr = new BinaryExpression(expr, operator, right);
+            expr = new Expression.Binary(expr, operator, right);
         }
 
         return expr;
@@ -434,7 +435,7 @@ public class Parser {
         if (match(Kind.Not, Kind.Minus)) {
             Token operator = previous();
             Expression right = unary();
-            return new UnaryExpression(operator, right);
+            return new Expression.Unary(operator, right);
         }
         return call();
     }
@@ -479,13 +480,14 @@ public class Parser {
         if (match(Kind.String)) return new LiteralExpression(Value.ofString(previous().value()));
         if (match(Kind.Identifier)) {
             if (check(Kind.OpenBracket)) return new InitSructExpression(previous(), createStructInitializer());
-            return new LetExpression(previous());
+            return new Expression.Let(previous());
         }
-        if (match(Kind.FuncKw)) return new AnonymousFuncExpression(createAnonymousFunction());
+        if (match(Kind.ThisKw)) return new Expression.This(previous());
+        if (match(Kind.FuncKw)) return new Expression.AnonymousFunc(createAnonymousFunction());
         if (match(Kind.OpenParenthesis)) {
             Expression expr = expression();
             consume(Kind.CloseParenthesis, "Expect ')' after expression.");
-            return new GroupingExpression(expr);
+            return new Expression.Grouping(expr);
         }
         throw report(peek(), "Expect expression.");
     }
