@@ -72,7 +72,8 @@ public class Lexer {
     }
 
     private void addNumberToken() {
-        while (Character.isDigit(peek())) next();
+        while (Character.isDigit(peek()))
+            next();
         if (peek() == Symbol.Dot.charAt(0) && Character.isDigit(peekNext())) {
             advance();
             while (Character.isDigit(peek())) advance();

@@ -42,6 +42,7 @@ public class NativeType {
         interpreter.getGlobals().define(String.name(), Value.ofType(String));
         interpreter.getGlobals().define(Void.name(), Value.ofType(Void));
         interpreter.getGlobals().define(Type.name(), Value.ofType(Type));
+        interpreter.getGlobals().define(Char.name(), Value.ofType(Char));
     }
 
 }

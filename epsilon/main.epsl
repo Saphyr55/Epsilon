@@ -7,22 +7,71 @@ struct Slime {
     parent: Slime;
 }
 
+struct Node {
+    mut next: Node;
+    mut data: type;
+}
+
+struct LinkedList {
+    mut size: number;
+    mut head: Node;
+    mut current: Node;
+}
+
+func create_linked_list() -> LinkedList {
+    let mut list: LinkedList = LinkedList{};
+    list.head = Node {};
+    list.current = list.head;
+    return list;
+}
+
+func add_element(list: LinkedList, data: type) -> void {
+    list.current = Node {
+        data = data;
+    };
+    list.current.next = list.head;
+    list.head = list.current;
+    list.size = list.size + 1;
+}
+
+func print_list(list: LinkedList, index: i32) -> type {
+    println("[");
+    for (let node = list.head; node.next != null; node = node.next) {
+        println(node.data + " ");
+    }
+    println("]");
+}
+
 func create_slime (name: string) -> Slime {
+
     return Slime {
         hp = 50;
         name = name;
+
         parent = Slime {
            hp = 50;
            name = "Andy";
            parent = null;
         };
     };
+
 }
 
 func main() -> void {
 
+    let list = create_linked_list();
+    add_element(list, "Salut");
+    add_element(list, "Salut");
+    add_element(list, "Salut");
+    print_list(list);
+
     let create_window = func (title: string, height: number, width: number) -> Window {
-        return Window(title, height, width);
+        let window = Window();
+        window.title = title;
+        window.height = height;
+        window.width = width;
+        //return Window(title, height, width);
+        return window;
     };
 
     let window: Window = create_window("Title", 100, 100);

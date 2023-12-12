@@ -6,7 +6,7 @@ import epsilon.type.NativeType;
 public class Utils {
 
     public static String unescapeString(String s){
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++)
             switch (s.charAt(i)) {
                 case '\n' -> sb.append("\\n");

@@ -5,7 +5,6 @@ import epsilon.expression.Expression;
 
 public class ReturnStatement implements Statement {
 
-
     private final Token keyword;
     private final Expression value;
     private FunctionStatement functionStatement;

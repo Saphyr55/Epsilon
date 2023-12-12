@@ -41,11 +41,10 @@ public class EClass implements Callable, Type {
         var typesArgs = args.stream().map(Value::getType).toList();
         for (var entry : constructors.entrySet()) {
             if (entry.getKey().isInstanceTypes(typesArgs)) {
-                var func = entry.getValue();
                 return Value.of(this, instance);
             }
         }
-        return Value.ofVoid();
+        return Value.of(this, null);
     }
 
     public Let findFields(String name) {

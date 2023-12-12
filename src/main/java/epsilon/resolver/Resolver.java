@@ -21,5 +21,10 @@ public interface Resolver<R,U> extends ExpressionVisitor<R>, StatementVisitor<U>
         statements.forEach(this::resolve);
     }
 
+    default void resolve(Statement ...statements) {
+        for (Statement statement : statements) {
+            statement.accept(this);
+        }
+    }
 
 }
